@@ -8,6 +8,7 @@ class Edge:
 class Node:
     def __init__(self, node_name: str):
         self.nodeName = node_name
+        self.degree = 0
 
 
 class Graph:
@@ -79,6 +80,12 @@ class Graph:
             matrix[list(self.nodes.keys()).index(edge.node2)][list(self.nodes.keys()).index(edge.node1)] = edge.weight
 
         self.adjacencyMatrix = matrix
+
+    def generate_random_graph(self):
+        import networkx as nx
+
+        print(nx.random_regular_graph())
+
 
     # def node_and_edges_from_adjacency_matrix(self):
     #     self.adjacency_matrix()
@@ -164,3 +171,5 @@ print(graphe.is_eulerian_path())
 graphe.print_adjency_matrix()
 graphe.plot_graph()
 graphe.print_graph()
+
+print(graphe.generate_random_graph())
