@@ -117,14 +117,16 @@ class Graph:
         self.add_edges_from_list(structured_edges)
         print("graph generated in ", (time.time() - start_time)*1000, "ms")
 
-    # def node_and_edges_from_adjacency_matrix(self):
-    #     self.adjacency_matrix()
-    #     for i in range(len(self.adjacencyMatrix)):
-    #         self.add_node(str(i))
-    #     for i in range(len(self.adjacencyMatrix)):
-    #         for j in range(len(self.adjacencyMatrix[i])):
-    #             if self.adjacencyMatrix[i][j] != 0:
-    #                 self.add_edge(str(i), str(j), self.adjacencyMatrix[i][j])
+
+    def node_and_edges_from_adjacency_matrix(self, adjacency_matrix: list):
+        for i in range(len(adjacency_matrix)):
+            print(i)
+            self.add_node(str(i))
+        for i in range(len(adjacency_matrix)):
+            print(f"{math.floor(i / len(adjacency_matrix) * 100)}%")
+            for j in range(len(adjacency_matrix[i])):
+                if adjacency_matrix[i][j] != 0:
+                    self.add_edge(str(i), str(j), adjacency_matrix[i][j])
 
     def plot_graph(self):
         import networkx as nx
