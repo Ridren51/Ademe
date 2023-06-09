@@ -92,7 +92,7 @@ class Graph:
         import networkx as nx
         import random as rd
         start_time = time.time()
-        p=.1
+        p=.00001
 
         """
         Generates a random undirected graph, similarly to an Erdős-Rényi
@@ -137,7 +137,7 @@ class Graph:
         graph = nx.empty_graph()
         graph.add_nodes_from(self.nodes.keys())
 
-        layout = nx.spring_layout(graph, k=0.1, iterations=50)
+        layout = nx.random_layout(graph)
         for edge in self.edges.values():
             graph.add_edge(edge.node1, edge.node2)
 
@@ -211,8 +211,8 @@ graphe = Graph()
 #     ]
 # )
 # graphe.node_and_edges_from_adjacency_matrix([[0, 1, 0, 0, 0, 0, 1], [1, 0, 1, 1, 0, 0, 0], [0, 1, 0, 1, 0, 0, 0], [0, 1, 1, 0, 1, 0, 0], [0, 0, 0, 1, 0, 1, 1], [0, 0, 0, 0, 1, 0, 1], [1, 0, 0, 0, 1, 1, 0]])
-graphe.generate_random_graph(250)
-print(graphe.is_eulerian_path())
-graphe.print_adjency_matrix()
+graphe.generate_random_graph(1000)
+# print(graphe.is_eulerian_path())
+# graphe.print_adjency_matrix()
 graphe.plot_graph()
-print(graphe.print_graph())
+# print(graphe.print_graph())
