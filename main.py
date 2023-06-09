@@ -145,9 +145,10 @@ class Graph:
             edge_labels = dict([((edge.node1, edge.node2), f'{edge.weight}') for edge in self.edges.values()])
             nx.draw_networkx_edge_labels(graph, pos=layout, edge_labels=edge_labels)
 
-        plt.figure(figsize=(120, 120))
-        nx.draw_networkx(graph, pos=layout, node_size=1000)
-        plt.savefig('graph.png', dpi=80)
+        size = len(self.nodes)/15
+        plt.figure(figsize=(size, size))
+        nx.draw_networkx(graph, pos=layout, node_size=2000)
+        plt.savefig('graph.svg')
         plt.show()
         print("graph plotted in ", (time.time() - startTime)*1000, "ms")
 
