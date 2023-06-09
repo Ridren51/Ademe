@@ -1,3 +1,8 @@
+import math
+import time
+from itertools import combinations, groupby
+
+
 class Edge:
     def __init__(self, node1: str, node2: str, weight: int):
         self.node1 = node1
@@ -22,7 +27,7 @@ class Graph:
 
     def add_nodes_from_list(self, nodes: list):
         for i in nodes:
-            self.add_node(i)
+            self.add_node(str(i))
 
     def add_edge(self, node1: str, node2: str, weight: int):
         if node1 in self.nodes and node2 in self.nodes:
@@ -71,6 +76,7 @@ class Graph:
             print(i)
 
     def adjacency_matrix(self):
+        start_time = time.time()
         matrix = [[0] * len(self.nodes) for _ in range(
             len(self.nodes))]  # create matrix of 0s with size of nodes x nodes (len(nodes) x len(nodes)) (rows x columns)
         for edge in self.edges.values():  # for each edge in the graph
@@ -80,39 +86,72 @@ class Graph:
             matrix[list(self.nodes.keys()).index(edge.node2)][list(self.nodes.keys()).index(edge.node1)] = edge.weight
 
         self.adjacencyMatrix = matrix
+        print("adjacency matrix generated in ", (time.time() - start_time)*1000, "ms")
 
-    def generate_random_graph(self):
+    def generate_random_graph(self, nodes: int=20):
         import networkx as nx
+        import random as rd
+        start_time = time.time()
+        p=.00001
 
-        print(nx.random_regular_graph())
+        """
+        Generates a random undirected graph, similarly to an Erdős-Rényi
+        graph, but enforcing that the resulting graph is conneted
+        """
+        edges = combinations(range(nodes), 2)
+        G = nx.Graph()
+        G.add_nodes_from(range(nodes))
+        if p >= 1:
+            G = nx.complete_graph(nodes, create_using=G)
+        for _, node_edges in groupby(edges, key=lambda x: x[0]):
+            node_edges = list(node_edges)
+            G.add_edges_from([rd.choice(node_edges), rd.choice(node_edges)])
+            for e in node_edges:
+                if rd.random() < p:
+                    G.add_edge(*e)
+
+        self.add_nodes_from_list(list(G.nodes))
+        # self.node_and_edges_from_adjacency_matrix(nx.adjacency_matrix(G).todense())
+
+        structured_edges = [[str(i[0]), str(i[1]), rd.randint(1, 10)] for i in G.edges]
+        self.add_edges_from_list(structured_edges)
+        print("graph generated in ", (time.time() - start_time)*1000, "ms")
 
 
-    # def node_and_edges_from_adjacency_matrix(self):
-    #     self.adjacency_matrix()
-    #     for i in range(len(self.adjacencyMatrix)):
-    #         self.add_node(str(i))
-    #     for i in range(len(self.adjacencyMatrix)):
-    #         for j in range(len(self.adjacencyMatrix[i])):
-    #             if self.adjacencyMatrix[i][j] != 0:
-    #                 self.add_edge(str(i), str(j), self.adjacencyMatrix[i][j])
+    def node_and_edges_from_adjacency_matrix(self, adjacency_matrix: list):
+        for i in range(len(adjacency_matrix)):
+            print(i)
+            self.add_node(str(i))
+        for i in range(len(adjacency_matrix)):
+            print(f"{math.floor(i / len(adjacency_matrix) * 100)}%")
+            for j in range(len(adjacency_matrix[i])):
+                if adjacency_matrix[i][j] != 0:
+                    self.add_edge(str(i), str(j), adjacency_matrix[i][j])
 
     def plot_graph(self):
         import networkx as nx
         import matplotlib.pyplot as plt
+        startTime = time.time()
         self.adjacency_matrix()
 
         graph = nx.empty_graph()
         graph.add_nodes_from(self.nodes.keys())
 
-        layout = nx.kamada_kawai_layout(graph)
+        layout = nx.random_layout(graph)
         for edge in self.edges.values():
             graph.add_edge(edge.node1, edge.node2)
 
-        edge_labels = dict([((edge.node1, edge.node2), f'{edge.weight}') for edge in self.edges.values()])
+        if len(self.edges)<10:
+            edge_labels = dict([((edge.node1, edge.node2), f'{edge.weight}') for edge in self.edges.values()])
+            nx.draw_networkx_edge_labels(graph, pos=layout, edge_labels=edge_labels)
 
-        nx.draw_networkx(graph, pos=layout)
-        nx.draw_networkx_edge_labels(graph, pos=layout, edge_labels=edge_labels)
+        size = len(self.nodes)/15
+        plt.figure(figsize=(size, size))
+        nx.draw_networkx(graph, pos=layout, node_size=2000)
+        plt.savefig('graph.svg')
         plt.show()
+        print("graph plotted in ", (time.time() - startTime)*1000, "ms")
+
 
     # def cycleEulerien(self):
     #     # La matrice est passée par référence, on fait donc une copie de la matrice pour éviter d'écraser ses données.
@@ -155,21 +194,26 @@ class Graph:
 
 
 graphe = Graph()
-graphe.add_nodes_from_list(['A', 'B', 'C', 'D'])
-graphe.add_edges_from_list(
-    [
-        ['A', 'B', 1],
-        ['A', 'A', 1],
-        ['B', 'C', 1],
-        ['B', 'D', 1],
-        ['C', 'D', 1],
-        ['D', 'C', 1]
-
-    ]
-)
-print(graphe.is_eulerian_path())
-graphe.print_adjency_matrix()
+# graphe.add_nodes_from_list(['A', 'B', 'C', 'D', 'E', 'F', 'G'])
+# graphe.add_edges_from_list(
+#     [
+#         ['A', 'B', 1],
+#         ['B', 'C', 1],
+#         ['B', 'D', 1],
+#         ['C', 'D', 1],
+#         ['D', 'C', 1],
+#         ['D', 'E', 1],
+#         ['E', 'F', 1],
+#         ['E', 'G', 1],
+#         ['F', 'G', 1],
+#         ['G', 'A', 1],
+#
+#
+#     ]
+# )
+# graphe.node_and_edges_from_adjacency_matrix([[0, 1, 0, 0, 0, 0, 1], [1, 0, 1, 1, 0, 0, 0], [0, 1, 0, 1, 0, 0, 0], [0, 1, 1, 0, 1, 0, 0], [0, 0, 0, 1, 0, 1, 1], [0, 0, 0, 0, 1, 0, 1], [1, 0, 0, 0, 1, 1, 0]])
+graphe.generate_random_graph(1000)
+# print(graphe.is_eulerian_path())
+# graphe.print_adjency_matrix()
 graphe.plot_graph()
-graphe.print_graph()
-
-print(graphe.generate_random_graph())
+# print(graphe.print_graph())
