@@ -135,14 +135,16 @@ class Graph:
         graph = nx.empty_graph()
         graph.add_nodes_from(self.nodes.keys())
 
-        layout = nx.kamada_kawai_layout(graph)
+        layout = nx.spring_layout(graph)
         for edge in self.edges.values():
             graph.add_edge(edge.node1, edge.node2)
 
-        edge_labels = dict([((edge.node1, edge.node2), f'{edge.weight}') for edge in self.edges.values()])
+        if len(self.edges)<10:
+            edge_labels = dict([((edge.node1, edge.node2), f'{edge.weight}') for edge in self.edges.values()])
+            nx.draw_networkx_edge_labels(graph, pos=layout, edge_labels=edge_labels)
 
         nx.draw_networkx(graph, pos=layout)
-        nx.draw_networkx_edge_labels(graph, pos=layout, edge_labels=edge_labels)
+
         plt.show()
         print("graph plotted in ", (time.time() - startTime)*1000, "ms")
 
