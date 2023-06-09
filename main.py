@@ -1,3 +1,8 @@
+import math
+import time
+from itertools import combinations, groupby
+
+
 class Edge:
     def __init__(self, node1: str, node2: str, weight: int):
         self.node1 = node1
@@ -71,6 +76,7 @@ class Graph:
             print(i)
 
     def adjacency_matrix(self):
+        start_time = time.time()
         matrix = [[0] * len(self.nodes) for _ in range(
             len(self.nodes))]  # create matrix of 0s with size of nodes x nodes (len(nodes) x len(nodes)) (rows x columns)
         for edge in self.edges.values():  # for each edge in the graph
@@ -80,6 +86,7 @@ class Graph:
             matrix[list(self.nodes.keys()).index(edge.node2)][list(self.nodes.keys()).index(edge.node1)] = edge.weight
 
         self.adjacencyMatrix = matrix
+        print("adjacency matrix generated in ", (time.time() - start_time)*1000, "ms")
 
     def generate_random_graph(self):
         import networkx as nx
@@ -99,6 +106,7 @@ class Graph:
     def plot_graph(self):
         import networkx as nx
         import matplotlib.pyplot as plt
+        startTime = time.time()
         self.adjacency_matrix()
 
         graph = nx.empty_graph()
@@ -113,6 +121,8 @@ class Graph:
         nx.draw_networkx(graph, pos=layout)
         nx.draw_networkx_edge_labels(graph, pos=layout, edge_labels=edge_labels)
         plt.show()
+        print("graph plotted in ", (time.time() - startTime)*1000, "ms")
+
 
     # def cycleEulerien(self):
     #     # La matrice est passée par référence, on fait donc une copie de la matrice pour éviter d'écraser ses données.
