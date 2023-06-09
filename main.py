@@ -27,7 +27,7 @@ class Graph:
 
     def add_nodes_from_list(self, nodes: list):
         for i in nodes:
-            self.add_node(i)
+            self.add_node(str(i))
 
     def add_edge(self, node1: str, node2: str, weight: int):
         if node1 in self.nodes and node2 in self.nodes:
@@ -88,11 +88,34 @@ class Graph:
         self.adjacencyMatrix = matrix
         print("adjacency matrix generated in ", (time.time() - start_time)*1000, "ms")
 
-    def generate_random_graph(self):
+    def generate_random_graph(self, nodes: int=20):
         import networkx as nx
+        import random as rd
+        start_time = time.time()
+        p=.1
 
-        print(nx.random_regular_graph())
+        """
+        Generates a random undirected graph, similarly to an Erdős-Rényi
+        graph, but enforcing that the resulting graph is conneted
+        """
+        edges = combinations(range(nodes), 2)
+        G = nx.Graph()
+        G.add_nodes_from(range(nodes))
+        if p >= 1:
+            G = nx.complete_graph(nodes, create_using=G)
+        for _, node_edges in groupby(edges, key=lambda x: x[0]):
+            node_edges = list(node_edges)
+            G.add_edges_from([rd.choice(node_edges), rd.choice(node_edges)])
+            for e in node_edges:
+                if rd.random() < p:
+                    G.add_edge(*e)
 
+        self.add_nodes_from_list(list(G.nodes))
+        # self.node_and_edges_from_adjacency_matrix(nx.adjacency_matrix(G).todense())
+
+        structured_edges = [[str(i[0]), str(i[1]), rd.randint(1, 10)] for i in G.edges]
+        self.add_edges_from_list(structured_edges)
+        print("graph generated in ", (time.time() - start_time)*1000, "ms")
 
     # def node_and_edges_from_adjacency_matrix(self):
     #     self.adjacency_matrix()
@@ -165,21 +188,26 @@ class Graph:
 
 
 graphe = Graph()
-graphe.add_nodes_from_list(['A', 'B', 'C', 'D'])
-graphe.add_edges_from_list(
-    [
-        ['A', 'B', 1],
-        ['A', 'A', 1],
-        ['B', 'C', 1],
-        ['B', 'D', 1],
-        ['C', 'D', 1],
-        ['D', 'C', 1]
-
-    ]
-)
+# graphe.add_nodes_from_list(['A', 'B', 'C', 'D', 'E', 'F', 'G'])
+# graphe.add_edges_from_list(
+#     [
+#         ['A', 'B', 1],
+#         ['B', 'C', 1],
+#         ['B', 'D', 1],
+#         ['C', 'D', 1],
+#         ['D', 'C', 1],
+#         ['D', 'E', 1],
+#         ['E', 'F', 1],
+#         ['E', 'G', 1],
+#         ['F', 'G', 1],
+#         ['G', 'A', 1],
+#
+#
+#     ]
+# )
+# graphe.node_and_edges_from_adjacency_matrix([[0, 1, 0, 0, 0, 0, 1], [1, 0, 1, 1, 0, 0, 0], [0, 1, 0, 1, 0, 0, 0], [0, 1, 1, 0, 1, 0, 0], [0, 0, 0, 1, 0, 1, 1], [0, 0, 0, 0, 1, 0, 1], [1, 0, 0, 0, 1, 1, 0]])
+graphe.generate_random_graph(250)
 print(graphe.is_eulerian_path())
 graphe.print_adjency_matrix()
 graphe.plot_graph()
-graphe.print_graph()
-
-print(graphe.generate_random_graph())
+print(graphe.print_graph())
