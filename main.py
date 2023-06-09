@@ -137,7 +137,7 @@ class Graph:
         graph = nx.empty_graph()
         graph.add_nodes_from(self.nodes.keys())
 
-        layout = nx.spring_layout(graph)
+        layout = nx.spring_layout(graph, k=0.1, iterations=50)
         for edge in self.edges.values():
             graph.add_edge(edge.node1, edge.node2)
 
@@ -145,8 +145,9 @@ class Graph:
             edge_labels = dict([((edge.node1, edge.node2), f'{edge.weight}') for edge in self.edges.values()])
             nx.draw_networkx_edge_labels(graph, pos=layout, edge_labels=edge_labels)
 
-        nx.draw_networkx(graph, pos=layout)
-
+        plt.figure(figsize=(120, 120))
+        nx.draw_networkx(graph, pos=layout, node_size=1000)
+        plt.savefig('graph.png', dpi=80)
         plt.show()
         print("graph plotted in ", (time.time() - startTime)*1000, "ms")
 
