@@ -1,6 +1,7 @@
 import math
 import time
 from itertools import combinations, groupby
+import random as rd
 
 
 class Edge:
@@ -88,11 +89,27 @@ class Graph:
         self.adjacencyMatrix = matrix
         print("adjacency matrix generated in ", (time.time() - start_time)*1000, "ms")
 
+    def create_travel_cost(self, consumption_from_speed: dict, job_cost_per_hour: int, fuel_cost_per_liter: float):
+
+        distance = rd.randint(1, 700)
+        speed = rd.choice(list(consumption_from_speed.keys()))  # classic speeds limits in km/h
+        consumption_per_hundred_km = consumption_from_speed[speed]  # consumption in L/100km
+
+        travel_time = distance / speed
+        consumption = consumption_per_hundred_km * (distance / 100)
+
+        travel_time_cost = travel_time * job_cost_per_hour
+        fuel_cost = consumption * fuel_cost_per_liter
+
+        return math.floor(travel_time_cost + fuel_cost) # total cost in €
+
     def generate_random_graph(self, nodes: int=20):
         import networkx as nx
-        import random as rd
         start_time = time.time()
         p=.00001
+        consumption_from_speed = {30: 55, 40: 48, 50: 44, 70: 33, 90: 38, 110: 44, 130: 51} # {speed in km/h: consumption in L/100km}
+        job_cost_per_hour = 9  # €/h
+        fuel_cost_per_liter = 1.5  # €/L
 
         """
         Generates a random undirected graph, similarly to an Erdős-Rényi
@@ -106,12 +123,15 @@ class Graph:
             self.node_and_edges_from_adjacency_matrix(nx.adjacency_matrix(g).todense())
         for _, node_edges in groupby(edges, key=lambda x: x[0]):
             node_edges = list(node_edges)
-            self.add_edge(str(rd.choice(node_edges)[0]), str(rd.choice(node_edges)[1]), rd.randint(1, 10))
-            self.add_edge(str(rd.choice(node_edges)[0]), str(rd.choice(node_edges)[1]), rd.randint(1, 10))
+            self.add_edge(str(rd.choice(node_edges)[0]), str(rd.choice(node_edges)[1]), self.create_travel_cost(consumption_from_speed, job_cost_per_hour, fuel_cost_per_liter))
+            self.add_edge(str(rd.choice(node_edges)[0]), str(rd.choice(node_edges)[1]), self.create_travel_cost(consumption_from_speed, job_cost_per_hour, fuel_cost_per_liter))
 
             for e in node_edges:
                 if rd.random() < p:
-                    self.add_edge(str(e[0]), str(e[1]), rd.randint(1, 10))
+                    if e[0] != e[1]: #if same city then no distance nor speed
+                        self.add_edge(str(e[0]), str(e[1]), self.create_travel_cost(consumption_from_speed, job_cost_per_hour, fuel_cost_per_liter))
+                    else:
+                        self.add_edge(str(e[0]), str(e[1]), 0)
 
         print("graph generated in ", (time.time() - start_time)*1000, "ms")
 
@@ -152,38 +172,6 @@ class Graph:
         plt.show()
         print("graph plotted in ", (time.time() - startTime)*1000, "ms")
 
-
-    # def cycleEulerien(self):
-    #     # La matrice est passée par référence, on fait donc une copie de la matrice pour éviter d'écraser ses données.
-    #     # Comme il faut aussi copier les listes internes, on fait une _copie profonde_
-    #     n = len(matrice)  # Nombre de sommet
-    #
-    #     cycle = deque()  # cycle est le cycle à construire
-    #     stack = deque()  # stack est la pile de sommets à traiter
-    #     cur = 0  # cur est le sommet courant. On commence avec le premier sommet de la matrice
-    #
-    #     # On boucle tant qu'il y a des sommets à traiter dans la pile
-    #     # ou que le sommet courant possède au moins 1 voisin non traité
-    #     while len(stack) > 0 or degreSommetGrapheMatrice(matrice, cur) != 0:
-    #         # Si le sommet courant ne possède aucun voisin, on l'ajoute au cycle
-    #         # et on revient au sommet ajouté précédemment dans la pile (backtracking)
-    #         # qui devient le nouveau sommet courant
-    #         if degreSommetGrapheMatrice(matrice, cur) == 0:
-    #             cycle.append(cur)
-    #             cur = stack.pop()
-    #
-    #         # S'il a au moins 1 voisin, on l'ajoute à la pile pour y revenir plus tard (backtracking)
-    #         # on retire l'arête qu'il partage avec ce voisin, qui devient le sommet courant
-    #         else:
-    #             for i in range(n):
-    #                 if matrice[cur][i]:
-    #                     stack.append(cur)
-    #                     matrice[cur][i] = 0
-    #                     matrice[i][cur] = 0
-    #                     cur = i
-    #                     break
-    #     return cycle
-
     def print_graph(self):
         print("Nodes:")
         for key, value in self.nodes.items():
@@ -194,26 +182,10 @@ class Graph:
 
 
 graphe = Graph()
-# graphe.add_nodes_from_list(['A', 'B', 'C', 'D', 'E', 'F', 'G'])
-# graphe.add_edges_from_list(
-#     [
-#         ['A', 'B', 1],
-#         ['B', 'C', 1],
-#         ['B', 'D', 1],
-#         ['C', 'D', 1],
-#         ['D', 'C', 1],
-#         ['D', 'E', 1],
-#         ['E', 'F', 1],
-#         ['E', 'G', 1],
-#         ['F', 'G', 1],
-#         ['G', 'A', 1],
-#
-#
-#     ]
-# )
-# graphe.node_and_edges_from_adjacency_matrix([[0, 1, 0, 0, 0, 0, 1], [1, 0, 1, 1, 0, 0, 0], [0, 1, 0, 1, 0, 0, 0], [0, 1, 1, 0, 1, 0, 0], [0, 0, 0, 1, 0, 1, 1], [0, 0, 0, 0, 1, 0, 1], [1, 0, 0, 0, 1, 1, 0]])
-graphe.generate_random_graph(999)
+graphe.generate_random_graph(10)
 # print(graphe.is_eulerian_path())
 # graphe.print_adjency_matrix()
 graphe.plot_graph()
+graphe.print_adjency_matrix()
+# print(graphe.adjacencyMatrix)
 # print(graphe.print_graph())
