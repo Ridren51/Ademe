@@ -145,9 +145,11 @@ class Graph:
             edge_labels = dict([((edge.node1, edge.node2), f'{edge.weight}') for edge in self.edges.values()])
             nx.draw_networkx_edge_labels(graph, pos=layout, edge_labels=edge_labels)
 
-        size = len(self.nodes)/15
-        plt.figure(figsize=(size, size))
-        nx.draw_networkx(graph, pos=layout, node_size=2000)
+        fig_size = len(self.nodes)/15 if (len(self.nodes)>100) else 10
+        nodes_size = 1000 if (len(self.nodes)>100) else 500
+
+        plt.figure(figsize=(fig_size, fig_size))
+        nx.draw_networkx(graph, pos=layout, node_size=nodes_size)
         plt.savefig('graph.svg')
         plt.show()
         print("graph plotted in ", (time.time() - startTime)*1000, "ms")
@@ -212,7 +214,7 @@ graphe = Graph()
 #     ]
 # )
 # graphe.node_and_edges_from_adjacency_matrix([[0, 1, 0, 0, 0, 0, 1], [1, 0, 1, 1, 0, 0, 0], [0, 1, 0, 1, 0, 0, 0], [0, 1, 1, 0, 1, 0, 0], [0, 0, 0, 1, 0, 1, 1], [0, 0, 0, 0, 1, 0, 1], [1, 0, 0, 0, 1, 1, 0]])
-graphe.generate_random_graph(1000)
+graphe.generate_random_graph(999)
 # print(graphe.is_eulerian_path())
 # graphe.print_adjency_matrix()
 graphe.plot_graph()
