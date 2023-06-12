@@ -1,7 +1,16 @@
 import numpy as np
 import random
+import copy
+import matplotlib.pyplot as plt
 
-n = 10
+X = 1000
+Y = 1000
+n = 500
+price = 1.700
+
+human_cost = 1
+ecological_cost = 1
+timecost = 1
 
 # EXECUTION SECTION
 coordinates = []
@@ -9,13 +18,13 @@ distances = []
 speeds = []
 
 # COORDINATES GENERATION SECTION
-f = open("liste.txt", "w")
+f = open("vendor/Coords/list.txt", "w")
 for i in range(1, n+1):
-    f.write(str(i) + " " + str(random.randint(0, 100)) + " " + str(random.randint(0, 100)) + "\n")
+    f.write(str(i) + " " + str(random.randint(1, 1000)) + " " + str(random.randint(1, 1000)) + "\n")
 f.close()
 
 # COORDINATES SELECTION SECTION
-f = open("liste.txt", "r")
+f = open("vendor/Coords/list.txt", "r")
 lines = f.readlines()
 f.close()
 for line in lines:
@@ -66,25 +75,33 @@ for i in range(len(speeds)):
         else:
             consumptions[i][j] = 0
 
-# COST GENERATION SECTION
+consumptions = np.divide(consumptions, 100)
 
 # TIME GENERATION SECTION
 d = np.array(distances)  # Distance Matrice
 v = np.array(speeds)  # Speeds Matrice
-times = np.multiply(d, v)  # Time = Distance / Speeds
+times = np.divide(d, np.nan_to_num(v))  # Time = Distance / Speeds
 
-# CONSOMPTION GENERATION SECTION
+# COST GENERATION SECTION
+cost = np.multiply(times, 9)  # Time in hours
 
+# GASOLINE GENERATION SECTION
+gasoline = np.multiply(distances, consumptions)  # Gasoline = Distance * Consumption
+
+# GASOLINE COST GENERATION SECTION
+gas_cost = np.multiply(gasoline, price)  # Gasoline Cost = Gasoline * Price
+
+# GLOBAL COST GENERATION SECTION
+HC = np.multiply(cost, human_cost)  # Cost = Time * Human Cost
+GC = np.multiply(gas_cost, ecological_cost)  # Gasoline Cost = Gasoline * Ecological Cost
+T = np.multiply(times, timecost)  # Time = Time * Time Cost
+
+global_cost = np.add(HC, GC, T)  # Global Cost = Cost + Gasoline Cost + Time
+global_cost = np.nan_to_num(global_cost, nan=0)
+np.savetxt('vendor/Coords/matrix.txt', global_cost, fmt='%.2f')
 # PRINT SECTION
-print("Matrice de distances:")
-for row in distances:
-    print(row)
-print("Matrice de speeds:")
-for row in speeds:
-    print(row)
-print("Matrice de temps:")
-for row in times:
-    print(row)
-print("Matrice de consommation:")
-for row in consumptions:
-    print(row)
+
+# print("Matrice de cout globale:")
+# for row in global_cost:
+#    print(row)
+
