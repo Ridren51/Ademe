@@ -99,22 +99,20 @@ class Graph:
         graph, but enforcing that the resulting graph is conneted
         """
         edges = combinations(range(nodes), 2)
-        G = nx.Graph()
-        G.add_nodes_from(range(nodes))
+        self.add_nodes_from_list(list(range(nodes)))
+
         if p >= 1:
-            G = nx.complete_graph(nodes, create_using=G)
+            g = nx.complete_graph(nodes)
+            self.node_and_edges_from_adjacency_matrix(nx.adjacency_matrix(g).todense())
         for _, node_edges in groupby(edges, key=lambda x: x[0]):
             node_edges = list(node_edges)
-            G.add_edges_from([rd.choice(node_edges), rd.choice(node_edges)])
+            self.add_edge(str(rd.choice(node_edges)[0]), str(rd.choice(node_edges)[1]), rd.randint(1, 10))
+            self.add_edge(str(rd.choice(node_edges)[0]), str(rd.choice(node_edges)[1]), rd.randint(1, 10))
+
             for e in node_edges:
                 if rd.random() < p:
-                    G.add_edge(*e)
+                    self.add_edge(str(e[0]), str(e[1]), rd.randint(1, 10))
 
-        self.add_nodes_from_list(list(G.nodes))
-        # self.node_and_edges_from_adjacency_matrix(nx.adjacency_matrix(G).todense())
-
-        structured_edges = [[str(i[0]), str(i[1]), rd.randint(1, 10)] for i in G.edges]
-        self.add_edges_from_list(structured_edges)
         print("graph generated in ", (time.time() - start_time)*1000, "ms")
 
 
@@ -141,7 +139,7 @@ class Graph:
         for edge in self.edges.values():
             graph.add_edge(edge.node1, edge.node2)
 
-        if len(self.edges)<10:
+        if len(self.edges)<=10:
             edge_labels = dict([((edge.node1, edge.node2), f'{edge.weight}') for edge in self.edges.values()])
             nx.draw_networkx_edge_labels(graph, pos=layout, edge_labels=edge_labels)
 
