@@ -128,18 +128,21 @@ class Graph:
         if p >= 1:
             g = nx.complete_graph(nodes)
             self.node_and_edges_from_adjacency_matrix(nx.adjacency_matrix(g).todense())
-        for _, node_edges in groupby(edges, key=lambda x: x[0]):
-
+        for node, node_edges in groupby(edges, key=lambda x: x[0]):
             node_edges = list(node_edges)
-            self.add_edge(str(rd.choice(node_edges)[0]), str(rd.choice(node_edges)[1]), create_travel_cost())
-            self.add_edge(str(rd.choice(node_edges)[0]), str(rd.choice(node_edges)[1]), create_travel_cost())
-
+            while self.nodes[str(node)].degree < 2:
+                self.add_edge(str(rd.choice(node_edges)[0]), str(rd.choice(node_edges)[1]), create_travel_cost())
             for e in node_edges:
                 if rd.random() < p:
                     if e[0] != e[1]: #if same city then no distance nor speed
                         self.add_edge(str(e[0]), str(e[1]), create_travel_cost())
                     else:
                         self.add_edge(str(e[0]), str(e[1]), 0)
+            if self.nodes[str(node)].degree < 2:
+                self.add_edge(str(node), rd.choice(list(self.nodes.keys())), create_travel_cost())
+        if self.nodes[str(nodes-1)].degree < 2:
+            #fixes the case where the last node is not connected to the graph, since it is not iterated over
+            self.add_edge(str(nodes-1), rd.choice(list(self.nodes.keys())), create_travel_cost())
 
         print("graph generated in ", (time.time() - start_time)*1000, "ms")
 
