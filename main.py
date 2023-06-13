@@ -94,7 +94,7 @@ class Graph:
         self.adjacencyMatrix = matrix
         print("adjacency matrix generated in ", (time.time() - start_time)*1000, "ms")
 
-    def generate_random_graph(self, nodes: int=20):
+    def generate_random_graph(self, nodes: int=20): #todo coef pour chaque variable (conso, temps, cout)
         import networkx as nx
 
         start_time = time.time()
