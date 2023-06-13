@@ -15,6 +15,7 @@ class Node:
     def __init__(self, node_name: str):
         self.nodeName = node_name
         self.degree = 0
+        self.neighbors = []
 
 
 class Graph:
@@ -40,7 +41,9 @@ class Graph:
                     if f"{node1},{node2}" in self.edges:
                         return
             self.nodes[node1].degree += 1
+            self.nodes[node1].neighbors.append(node2)
             self.nodes[node2].degree += 1
+            self.nodes[node2].neighbors.append(node1)
             self.edges[f"{node1},{node2}"] = Edge(node1, node2, weight)
 
     def add_edges_from_list(self, edges: list):
@@ -61,8 +64,10 @@ class Graph:
             del self.edges[f"{node1},{node2}"]
             if node1 in self.nodes:
                 self.nodes[node1].degree -= 1
+                self.nodes[node1].neighbors.remove(node2)
             if node2 in self.nodes:
                 self.nodes[node2].degree -= 1
+                self.nodes[node2].neighbors.remove(node1)
 
     def is_eulerian_path(self):
         return all(self.nodes[i].degree % 2 == 0 for i in self.nodes)
@@ -105,6 +110,7 @@ class Graph:
 
     def generate_random_graph(self, nodes: int=20):
         import networkx as nx
+        import random as rd
         start_time = time.time()
         p=.00001
         consumption_from_speed = {30: 55, 40: 48, 50: 44, 70: 33, 90: 38, 110: 44, 130: 51} # {speed in km/h: consumption in L/100km}
@@ -187,5 +193,8 @@ graphe.generate_random_graph(10)
 # graphe.print_adjency_matrix()
 graphe.plot_graph()
 graphe.print_adjency_matrix()
+
+for i in graphe.nodes:
+    print(graphe.nodes[i].neighbors)
 # print(graphe.adjacencyMatrix)
 # print(graphe.print_graph())
