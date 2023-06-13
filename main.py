@@ -89,19 +89,29 @@ class Graph:
         self.adjacencyMatrix = matrix
         print("adjacency matrix generated in ", (time.time() - start_time)*1000, "ms")
 
-    def create_travel_cost(self, consumption_from_speed: dict, job_cost_per_hour: int, fuel_cost_per_liter: float):
+    def generate_random_graph(self, nodes: int=20):
+        import networkx as nx
 
-        distance = rd.randint(1, 700)
-        speed = rd.choice(list(consumption_from_speed.keys()))  # classic speeds limits in km/h
-        consumption_per_hundred_km = consumption_from_speed[speed]  # consumption in L/100km
+        start_time = time.time()
 
-        travel_time = distance / speed
-        consumption = consumption_per_hundred_km * (distance / 100)
+        p=.00001
+        consumption_from_speed = {30: 55, 40: 48, 50: 44, 70: 33, 90: 38, 110: 44, 130: 51} # {speed in km/h: consumption in L/100km}
+        job_cost_per_hour = 9  # €/h
+        fuel_cost_per_liter = 1.5  # €/L
 
-        travel_time_cost = travel_time * job_cost_per_hour
-        fuel_cost = consumption * fuel_cost_per_liter
+        def create_travel_cost():
 
-        return math.floor(travel_time_cost + fuel_cost) # total cost in €
+            distance = rd.randint(1, 700)
+            speed = rd.choice(list(consumption_from_speed.keys()))  # classic speeds limits in km/h
+            consumption_per_hundred_km = consumption_from_speed[speed]  # consumption in L/100km
+
+            travel_time = distance / speed
+            consumption = consumption_per_hundred_km * (distance / 100)
+
+            travel_time_cost = travel_time * job_cost_per_hour
+            fuel_cost = consumption * fuel_cost_per_liter
+
+            return math.floor(travel_time_cost + fuel_cost)  # total cost in €
 
     def generate_random_graph(self, nodes: int=20):
         import networkx as nx
@@ -122,14 +132,15 @@ class Graph:
             g = nx.complete_graph(nodes)
             self.node_and_edges_from_adjacency_matrix(nx.adjacency_matrix(g).todense())
         for _, node_edges in groupby(edges, key=lambda x: x[0]):
+
             node_edges = list(node_edges)
-            self.add_edge(str(rd.choice(node_edges)[0]), str(rd.choice(node_edges)[1]), self.create_travel_cost(consumption_from_speed, job_cost_per_hour, fuel_cost_per_liter))
-            self.add_edge(str(rd.choice(node_edges)[0]), str(rd.choice(node_edges)[1]), self.create_travel_cost(consumption_from_speed, job_cost_per_hour, fuel_cost_per_liter))
+            self.add_edge(str(rd.choice(node_edges)[0]), str(rd.choice(node_edges)[1]), create_travel_cost())
+            self.add_edge(str(rd.choice(node_edges)[0]), str(rd.choice(node_edges)[1]), create_travel_cost())
 
             for e in node_edges:
                 if rd.random() < p:
                     if e[0] != e[1]: #if same city then no distance nor speed
-                        self.add_edge(str(e[0]), str(e[1]), self.create_travel_cost(consumption_from_speed, job_cost_per_hour, fuel_cost_per_liter))
+                        self.add_edge(str(e[0]), str(e[1]), create_travel_cost())
                     else:
                         self.add_edge(str(e[0]), str(e[1]), 0)
 
@@ -149,7 +160,7 @@ class Graph:
     def plot_graph(self):
         import networkx as nx
         import matplotlib.pyplot as plt
-        startTime = time.time()
+        start_time = time.time()
         self.adjacency_matrix()
 
         graph = nx.empty_graph()
@@ -170,7 +181,7 @@ class Graph:
         nx.draw_networkx(graph, pos=layout, node_size=nodes_size)
         plt.savefig('graph.svg')
         plt.show()
-        print("graph plotted in ", (time.time() - startTime)*1000, "ms")
+        print("graph plotted in ", (time.time() - start_time)*1000, "ms")
 
     def print_graph(self):
         print("Nodes:")
