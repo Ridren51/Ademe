@@ -118,15 +118,6 @@ class Graph:
 
             return math.floor(travel_time_cost + fuel_cost)  # total cost in €
 
-    def generate_random_graph(self, nodes: int=20):
-        import networkx as nx
-        import random as rd
-        start_time = time.time()
-        p=.00001
-        consumption_from_speed = {30: 55, 40: 48, 50: 44, 70: 33, 90: 38, 110: 44, 130: 51} # {speed in km/h: consumption in L/100km}
-        job_cost_per_hour = 9  # €/h
-        fuel_cost_per_liter = 1.5  # €/L
-
         """
         Generates a random undirected graph, similarly to an Erdős-Rényi
         graph, but enforcing that the resulting graph is conneted
