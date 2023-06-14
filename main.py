@@ -335,75 +335,69 @@ class Graph:
         beta = 2
         pheromone_quantity = 1
         evaporation = 0.5
-        alread_visited_penalty = 0.1
+        already_visited_penalty = 0.5
+        best_path = []
 
         start_node = str(start_node)
         self.adjacency_matrix()
         print("aco_proto", start_node)
         print("nodes", self.nodes)
         print("node", self.nodes[start_node])
-        print("adjacencyMatrix", self.adjacencyMatrix)
+        for _ in range(100): # Run ant colony optimization for a fixed number of iterations
+            paths = []
+            for _ in range(num_ants): # Create ant agents
+                current_city = self.nodes[start_node]
+                unvisited_cities = list(self.nodes.keys())
+                path = []
+                cost = 0
+                last_city = None
+                while unvisited_cities!=[] or current_city.node_name != start_node:
+                    neighbor_choice_probabilities = []
+                    total = 0
 
-        current_city = self.nodes[start_node]
-        unvisited_cities = list(self.nodes.keys())
-        path = []
-        cost = 0
-        cul_de_sac = []
-        last_city = None
-        print("condition", (unvisited_cities != [] or current_city.node_name == start_node))
-        while unvisited_cities!=[] or current_city.node_name != start_node:
-            print("condition",(unvisited_cities!=[] or current_city.node_name == start_node))
+                    #choose next city
+                    for neighbor in current_city.neighbors:
+                        edge = self.get_edge(current_city.node_name, neighbor)
+                        pheromone = edge.pheromone ** alpha  # Calculate pheromone value
+                        distance = 1/edge.weight ** beta if edge.weight != 0 else 0
+                        score = edge.pheromone * distance if edge.pheromone != 0 else 1*distance
 
-            neighbor_choice_probabilities = []
+                        if not unvisited_cities and neighbor == start_node:
+                            score = score * 1000
+                        elif neighbor in path:
+                            if neighbor == last_city.node_name:
+                                score = score/1000
+                            score = already_visited_penalty * score # penalize already visited cities to avoid loops
+                        total += score
+                        neighbor_choice_probabilities.append(score)
 
-            total = 0
+                    probabilities = []
+                    for p in neighbor_choice_probabilities:
+                        if p == 0:
+                            probabilities.append(0)
+                            continue
+                        probabilities.append(p / total)  # Calculate probabilities
+                    if current_city.node_name in unvisited_cities:
+                        unvisited_cities.remove(current_city.node_name)
+                    path.append(current_city.node_name)
+                    last_city = current_city
+                    print("probabilities", sum(probabilities),probabilities)
+                    print("path", path)
+                    current_city = self.nodes[np.random.choice(current_city.neighbors, p=probabilities)]  # Choose next city
+                    cost += self.get_edge(last_city.node_name, current_city.node_name).weight
 
-            # print("current_city", current_city.node_name)
-            # print("last_city", last_city)
-            # print("neighbors", current_city.neighbors)
-            #choose next city
-            for neighbor in current_city.neighbors:
-                # print("neigbhours", neighbor)
-                # print("distance", self.get_edge(current_city.node_name, neighbor).weight)
-                # print("pheromone", self.get_edge(current_city.node_name, neighbor).pheromone)
-                edge = self.get_edge(current_city.node_name, neighbor)
-                pheromone = edge.pheromone ** alpha  # Calculate pheromone value
-                # print("pheromone", pheromone)
-                # print("pheromone",pheromone_matrix[current_city][city])
-                distance = 1/edge.weight ** beta if edge.weight != 0 else 0
-                score = edge.pheromone * distance if edge.pheromone != 0 else distance
+                path.append(start_node)
+                cost += self.get_edge(last_city.node_name, start_node).weight
+                paths.append((cost,path))
 
-                if not unvisited_cities and neighbor == start_node:
-                    score = score * 100
-                elif neighbor in path:
-                    if neighbor == last_city.node_name:
-                        score = 0
-                    score = alread_visited_penalty * score # penalize already visited cities to avoid loops
-                total += score
-                neighbor_choice_probabilities.append(score)
-            # print("neighbor_choice_probabilities", neighbor_choice_probabilities)
-            probabilities = []
-            for p in neighbor_choice_probabilities:
-                if p == 0:
-                    probabilities.append(0)
-                    continue
-                probabilities.append(p / total)  # Calculate probabilities
-            # print("probabilities", sum(probabilities),probabilities)
-            # print("node_name", type(current_city.node_name))
-            # print("unvisited_cities", unvisited_cities)
-            if current_city.node_name in unvisited_cities:
-                unvisited_cities.remove(current_city.node_name)
-            # print("unvisited_cities", unvisited_cities)
-            path.append(current_city.node_name)
-            last_city = current_city
-            current_city = self.nodes[np.random.choice(current_city.neighbors, p=probabilities)]  # Choose next city
-                    # print("next_city", current_city)
-        path.append(start_node)
-        print("condition",(unvisited_cities!=[] or current_city.node_name == start_node))
-        print(unvisited_cities!=[])
-        print(current_city.node_name == start_node)
+                #update pheromone
+                for index in range(len(path)-1):
+                    edge = self.get_edge(path[index], path[index+1])
+                    edge.pheromone += 1 / cost
+                    edge.pheromone *= (1 - evaporation)  # Evaporate pheromone on all edges
 
-        print("final path", path)
+            best_path = min(paths, key=lambda x: x[0])
+        print("best cost", best_path)
 
 
 
