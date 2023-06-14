@@ -24,12 +24,12 @@ class Graph:
         self.nodes = {}
         self.edges = {}
 
-    def get_edges(self, node1, node2):
+    def get_edge(self, node_name_1, node_name_2):
         try:
-            return self.adjacencyMatrix[node1][node2]
+            return self.edges[f"{node_name_1},{node_name_2}"]
         except KeyError:
             try:
-                return self.adjacencyMatrix[node2][node1]
+                return self.edges[f"{node_name_2},{node_name_1}"]
             except KeyError:
                 return None
 
