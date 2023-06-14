@@ -2,6 +2,7 @@ import math
 import time
 from itertools import combinations, groupby
 import random as rd
+import numpy as np
 
 
 class Edge:
