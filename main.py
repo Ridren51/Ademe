@@ -12,8 +12,8 @@ class Edge:
 
 
 class Node:
-    def __init__(self, node_name: str):
-        self.nodeName = node_name
+    def __init__(self, node_name):
+        self.node_name = str(node_name)
         self.degree = 0
         self.neighbors = []
 
@@ -23,6 +23,15 @@ class Graph:
         self.adjacencyMatrix = []
         self.nodes = {}
         self.edges = {}
+
+    def get_edges(self, node1, node2):
+        try:
+            return self.adjacencyMatrix[node1][node2]
+        except KeyError:
+            try:
+                return self.adjacencyMatrix[node2][node1]
+            except KeyError:
+                return None
 
     def add_node(self, node_name: str):
         self.nodes[node_name] = Node(node_name)
