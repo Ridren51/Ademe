@@ -1,8 +1,10 @@
+import datetime
 import math
 import time
 from itertools import combinations, groupby
 import random as rd
 import numpy as np
+import psutil
 
 
 class Edge:
@@ -20,6 +22,40 @@ class Node:
         self.degree = 0
         self.neighbors = []
 
+
+class Utils:
+    def performance_test(self, func, func_params:dict, iterations:int=1, instance_size:int=-1): #wrapper for performance test
+        import csv
+        import os
+
+        filename=f'vendor/benchmarks/{func.__name__}/'
+        os.makedirs(os.path.dirname(filename), exist_ok=True)
+
+        with open(f"{filename}/{datetime.datetime.now().strftime('%d-%m-%Y_%H-%M-%S')}.csv", mode='w') as benchfile:
+            writer = csv.writer(benchfile, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
+            writer.writerow(["iteration", "runtime", "CPU", "memory", "nb_nodes", "nb_edges", "cost", "path"])
+
+            for iteration in range(iterations):
+                grapher = Graph()
+                if instance_size != -1:
+                    grapher.generate_random_graph(instance_size)
+                else:
+                    grapher.generate_random_graph(rd.randint(10, 100))
+
+                start_time = time.time()
+                start_cpu_time = psutil.Process().cpu_times().user  # Measure CPU time before running the algorithm
+                start_memory_usage = psutil.Process().memory_info().rss / 1024 / 1024  # Convert to megabytes
+
+
+                result = func(**func_params)
+                print("result: ", result)
+
+
+                end_cpu_time = psutil.Process().cpu_times().user  # Measure CPU time after running the algorithm
+                end_memory_usage = psutil.Process().memory_info().rss / 1024 / 1024  # Convert to megabytes
+                end_time = time.time()
+
+                writer.writerow([iteration, end_time - start_time, end_cpu_time - start_cpu_time, end_memory_usage - start_memory_usage, len(grapher.nodes), len(grapher.edges), result[0],result[1]])
 
 class Graph:
     def __init__(self):
@@ -293,6 +329,7 @@ class Graph:
 
 
 graphe = Graph()
+utils = Utils()
 graphe.generate_random_graph(10)
 # graphe.node_and_edges_from_adjacency_matrix([[0, 0, 0, 0, 0, 0, 247, 0, 375, 0], [0, 0, 0, 4, 0, 0, 140, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 323, 457], [0, 4, 0, 0, 0, 0, 0, 287, 0, 0], [0, 0, 0, 0, 0, 0, 334, 0, 0, 116], [0, 0, 0, 0, 0, 0, 552, 0, 0, 485], [247, 140, 0, 0, 334, 552, 0, 0, 0, 0], [0, 0, 0, 287, 0, 0, 0, 0, 373, 0], [375, 0, 323, 0, 0, 0, 0, 373, 0, 0], [0, 0, 457, 0, 116, 485, 0, 0, 0, 0]])
 # print(graphe.is_eulerian_path())
@@ -304,4 +341,5 @@ for i in graphe.nodes:
     print(graphe.nodes[i].neighbors)
 # print(graphe.adjacencyMatrix)
 # print(graphe.print_graph())
-graphe.aco_proto(0)
+# graphe.aco_proto(0)
+utils.performance_test(graphe.aco_proto, {'start_node' : 0}, 100)
