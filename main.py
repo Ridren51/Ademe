@@ -106,8 +106,16 @@ class Graph:
         self.adjacencyMatrix = matrix
         print("adjacency matrix generated in ", (time.time() - start_time)*1000, "ms")
 
+    def clear(self):
+        self.nodes = {}
+        self.edges = {}
+        self.adjacencyMatrix = []
+
     def generate_random_graph(self, nodes: int=20): #todo coef pour chaque variable (conso, temps, cout)
         import networkx as nx
+
+        #clear existing graph
+        self.clear()
 
         start_time = time.time()
 
@@ -156,6 +164,8 @@ class Graph:
 
 
     def node_and_edges_from_adjacency_matrix(self, adjacency_matrix: list):
+        # clear existing graph
+        self.clear()
         for i in range(len(adjacency_matrix)):
             print(i)
             self.add_node(str(i))
@@ -190,139 +200,6 @@ class Graph:
         plt.savefig('graph.svg')
         plt.show()
         print("graph plotted in ", (time.time() - start_time)*1000, "ms")
-
-
-    # def aco(self):
-    #     import numpy as np
-    #     import psutil
-    #     import time
-    #
-    #     num_ants = 10
-    #     alpha = 1
-    #     beta = 2
-    #     evaporation = 0.5
-    #
-    #     def choose_next_city(current_city, unvisited_cities, pheromone_matrix, distance_matrix,best_path, cul_de_sac, alpha, beta):
-    #         temp_probabilities = []
-    #         total = 0
-    #         # print("current_city",current_city)
-    #         # print("unvisited_cities",unvisited_cities)
-    #         for city in unvisited_cities:
-    #             if distance_matrix[current_city][city] == 0 or city in cul_de_sac:
-    #                 print("cul_de_sac",city)
-    #                 temp_probabilities.append(0)
-    #             else:
-    #                 pheromone = pheromone_matrix[current_city][city] ** alpha  # Calculate pheromone value
-    #                 # print("pheromone",pheromone_matrix[current_city][city])
-    #                 distance = 1 / distance_matrix[current_city][city] ** beta  # Calculate distance value
-    #                 temp_probabilities.append(pheromone * distance)
-    #                 total += pheromone * distance
-    #
-    #         probabilities = []
-    #
-    #         for p in temp_probabilities: # Calculate probabilities
-    #             # print("probability",p)
-    #             if p!=0:
-    #                 probabilities.append(p / total)  # Normalize probabilities
-    #                 # print("probability p/T",p / total)
-    #             else: # report 0 probability for cities that are not connected
-    #                 probabilities.append(0)
-    #
-    #
-    #         # print("probabilities",len(probabilities),probabilities)
-    #         # print("unvisited_cities",len(unvisited_cities),unvisited_cities)
-    #         # print("best_path",len(best_path),best_path)
-    #         # print(current_city, best_path)
-    #         if sum(probabilities)==0: #if all probabilities are 0 then go to the last city
-    #             # print("added to cul de sac",best_path[-1])
-    #             print("proba 0")
-    #             cul_de_sac.append(best_path[-1]) #add the last city to the cul_de_sac list
-    #             unvisited_cities.extend(best_path[-2:]) #add the previous city to the unvisited_cities list
-    #             print("previous path",best_path)
-    #             # best_path.pop() #remove the last city from the best_path list
-    #             return best_path[-2]
-    #         next_city_index = np.random.choice(range(len(unvisited_cities)),
-    #                                            p=probabilities)  # Randomly select next city
-    #         # print("next_city_index",next_city_index)
-    #         return unvisited_cities[next_city_index]
-    #
-    #     def ant_colony(coordinates, num_ants, alpha, beta, evaporation):
-    #         print(coordinates)
-    #         num_cities = len(coordinates)
-    #         best_path = []
-    #         best_cost = float('inf')
-    #         pheromone_matrix = np.ones((num_cities, num_cities)) * evaporation  # Initialize pheromone matrix
-    #
-    #         for _ in range(100):  # Run ant colony optimization for a fixed number of iterations
-    #             paths = []
-    #             costs = []
-    #
-    #             for _ in range(num_ants):  # Create ant agents
-    #                 current_city = np.random.randint(0, num_cities)  # Choose random starting city
-    #                 unvisited_cities = list(range(num_cities))
-    #                 unvisited_cities.remove(current_city)
-    #                 path = [current_city]
-    #                 cost = 0
-    #                 cul_de_sac = []
-    #                 while unvisited_cities:  # Construct path by iteratively choosing next city
-    #
-    #                     next_city = choose_next_city(current_city, unvisited_cities, pheromone_matrix,
-    #                                                  self.adjacencyMatrix,path,cul_de_sac, alpha, beta)
-    #                     print("cul de sac",cul_de_sac)
-    #                     path.append(next_city)
-    #                     cost += self.adjacencyMatrix[current_city][next_city]
-    #                     if next_city != current_city:
-    #                         print("path",path)
-    #                         print("next_city",next_city)
-    #                         print("unvisited_cities",unvisited_cities)
-    #                         unvisited_cities.remove(next_city)
-    #                     current_city = next_city
-    #
-    #                 path.append(path[0])  # Complete the path by returning to the starting city
-    #                 cost += self.adjacencyMatrix[path[-2]][
-    #                     path[-1]]  # Add the distance from the last city to the starting city
-    #
-    #                 paths.append(path)
-    #                 costs.append(cost)
-    #
-    #                 if cost < best_cost:  # Update best path and cost if a better solution is found
-    #                     best_path = path
-    #                     best_cost = cost
-    #
-    #             pheromone_matrix *= (1 - evaporation)  # Evaporate pheromone on all edges
-    #
-    #             for i in range(num_ants):  # Update pheromone matrix based on constructed paths
-    #                 for j in range(num_cities):
-    #                     pheromone_matrix[paths[i][j]][paths[i][j + 1]] += 1 / costs[i]  # Add pheromone on the edge
-    #
-    #         return best_path, best_cost
-    #
-    #     def running():
-    #         print("running")
-    #         num_cities = len(self.adjacencyMatrix)
-    #
-    #         start_time = time.time()
-    #         start_cpu_time = psutil.Process().cpu_times().user  # Measure CPU time before running the algorithm
-    #         start_memory_usage = psutil.Process().memory_info().rss / 1024 / 1024  # Convert to megabytes
-    #
-    #         best_path, best_cost = ant_colony(self.adjacencyMatrix, num_ants, alpha, beta,
-    #                                           evaporation)  # Run ant colony optimization
-    #
-    #         end_cpu_time = psutil.Process().cpu_times().user  # Measure CPU time after running the algorithm
-    #         end_memory_usage = psutil.Process().memory_info().rss / 1024 / 1024  # Convert to megabytes
-    #         end_time = time.time()
-    #
-    #         execution_time = end_time - start_time  # Calculate total execution time
-    #         cpu_time = end_cpu_time - start_cpu_time  # Calculate CPU time
-    #         memory_usage = end_memory_usage - start_memory_usage  # Calculate memory usage
-    #
-    #         print("Best path:", best_path)  # Print the best path found
-    #         print("Best cost:", best_cost)  # Print the cost of the best path
-    #         print("Execution time:", execution_time, "seconds")  # Print the total execution time
-    #         print("CPU time:", cpu_time, "seconds")  # Print the CPU time
-    #         print("Memory usage:", memory_usage, "MB")  # Print the memory usage
-    #
-    #     running()
 
     def aco_proto(self, start_node):
         num_ants = 10
@@ -390,13 +267,6 @@ class Graph:
                 path.append(start_node)
                 cost += self.get_edge(last_city.node_name, start_node).weight
                 paths.append((cost,path))
-
-                #update pheromone
-                # for index in range(len(path)-1):
-                #     edge = self.get_edge(path[index], path[index+1])
-                #     print("edge", edge.node1, edge.node2)
-                #     edge.pheromone += 1 / cost
-                #     edge.pheromone *= (1 - evaporation)  # Evaporate pheromone on all edges
 
                 for edge in list(set(edges)):
                     print("edge", edge.node1, edge.node2)
