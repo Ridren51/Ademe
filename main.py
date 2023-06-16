@@ -334,16 +334,20 @@ class Graph:
         best_path = []
 
         start_node = str(start_node)
-        self.adjacency_matrix()
-        print("aco_proto", start_node)
-        print("nodes", self.nodes)
-        print("node", self.nodes[start_node])
+        # print("aco_proto", start_node)
+        # print("nodes", self.nodes)
+        # print("node", self.nodes[start_node])
+
+        start_time = time.time()
+
         for _ in range(100): # Run ant colony optimization for a fixed number of iterations
             paths = []
             for _ in range(num_ants): # Create ant agents
+                print("ant", _)
                 current_city = self.nodes[start_node]
                 unvisited_cities = list(self.nodes.keys())
                 path = []
+                edges = []
                 cost = 0
                 last_city = None
                 while unvisited_cities!=[] or current_city.node_name != start_node:
@@ -375,10 +379,12 @@ class Graph:
                     if current_city.node_name in unvisited_cities:
                         unvisited_cities.remove(current_city.node_name)
                     path.append(current_city.node_name)
+
                     last_city = current_city
-                    print("probabilities", sum(probabilities),probabilities)
-                    print("path", path)
+                    # print("probabilities", sum(probabilities),probabilities)
+                    # print("path", path)
                     current_city = self.nodes[np.random.choice(current_city.neighbors, p=probabilities)]  # Choose next city
+                    edges.append(self.get_edge(last_city.node_name, current_city.node_name))
                     cost += self.get_edge(last_city.node_name, current_city.node_name).weight
 
                 path.append(start_node)
@@ -386,12 +392,21 @@ class Graph:
                 paths.append((cost,path))
 
                 #update pheromone
-                for index in range(len(path)-1):
-                    edge = self.get_edge(path[index], path[index+1])
+                # for index in range(len(path)-1):
+                #     edge = self.get_edge(path[index], path[index+1])
+                #     print("edge", edge.node1, edge.node2)
+                #     edge.pheromone += 1 / cost
+                #     edge.pheromone *= (1 - evaporation)  # Evaporate pheromone on all edges
+
+                for edge in list(set(edges)):
+                    print("edge", edge.node1, edge.node2)
                     edge.pheromone += 1 / cost
                     edge.pheromone *= (1 - evaporation)  # Evaporate pheromone on all edges
 
+
+
             best_path = min(paths, key=lambda x: x[0])
+        print("time", (time.time()-start_time)*1000,"ms")
         print("best cost", best_path)
 
 
@@ -409,6 +424,7 @@ class Graph:
 
 graphe = Graph()
 graphe.generate_random_graph(10)
+# graphe.node_and_edges_from_adjacency_matrix([[0, 0, 0, 0, 0, 0, 247, 0, 375, 0], [0, 0, 0, 4, 0, 0, 140, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 323, 457], [0, 4, 0, 0, 0, 0, 0, 287, 0, 0], [0, 0, 0, 0, 0, 0, 334, 0, 0, 116], [0, 0, 0, 0, 0, 0, 552, 0, 0, 485], [247, 140, 0, 0, 334, 552, 0, 0, 0, 0], [0, 0, 0, 287, 0, 0, 0, 0, 373, 0], [375, 0, 323, 0, 0, 0, 0, 373, 0, 0], [0, 0, 457, 0, 116, 485, 0, 0, 0, 0]])
 # print(graphe.is_eulerian_path())
 # graphe.print_adjency_matrix()
 graphe.plot_graph()
@@ -418,3 +434,4 @@ for i in graphe.nodes:
     print(graphe.nodes[i].neighbors)
 # print(graphe.adjacencyMatrix)
 # print(graphe.print_graph())
+graphe.aco_proto(0)
