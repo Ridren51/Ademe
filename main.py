@@ -256,10 +256,10 @@ def ACO(graph:Graph, start_node):
     already_visited_penalty = 0.5
     best_path = []
 
-        start_node = str(start_node)
-        # print("aco_proto", start_node)
-        # print("nodes", self.nodes)
-        # print("node", self.nodes[start_node])
+    start_node = str(start_node)
+    # print("aco_proto", start_node)
+    # print("nodes", self.nodes)
+    # print("node", self.nodes[start_node])
 
     start_time = time.time()
 
