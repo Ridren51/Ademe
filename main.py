@@ -25,6 +25,7 @@ class Node:
 
 class Utils:
     def performance_test(self, func, func_params:dict, iterations:int=1, instance_size:int=-1): #wrapper for performance test
+        print("Running performance test for ", func.__name__, " with ", iterations, " iterations and ", instance_size, " nodes")
         import csv
         import os
 
@@ -47,7 +48,7 @@ class Utils:
                 start_memory_usage = psutil.Process().memory_info().rss / 1024 / 1024  # Convert to megabytes
 
 
-                result = func(**func_params)
+                result = func(graph=grapher,**func_params)
                 print("result: ", result)
 
 
@@ -237,87 +238,6 @@ class Graph:
         plt.show()
         print("graph plotted in ", (time.time() - start_time)*1000, "ms")
 
-    def aco_proto(self, start_node):
-        num_ants = 10
-        alpha = 1
-        beta = 2
-        pheromone_quantity = 1
-        evaporation = 0.5
-        already_visited_penalty = 0.5
-        best_path = []
-
-        start_node = str(start_node)
-        # print("aco_proto", start_node)
-        # print("nodes", self.nodes)
-        # print("node", self.nodes[start_node])
-
-        start_time = time.time()
-
-        for _ in range(100): # Run ant colony optimization for a fixed number of iterations
-            paths = []
-            for _ in range(num_ants): # Create ant agents
-                print("ant", _)
-                current_city = self.nodes[start_node]
-                unvisited_cities = list(self.nodes.keys())
-                path = []
-                edges = []
-                cost = 0
-                last_city = None
-                while unvisited_cities!=[] or current_city.node_name != start_node:
-                    neighbor_choice_probabilities = []
-                    total = 0
-
-                    #choose next city
-                    for neighbor in current_city.neighbors:
-                        edge = self.get_edge(current_city.node_name, neighbor)
-                        pheromone = edge.pheromone ** alpha  # Calculate pheromone value
-                        distance = 1/edge.weight ** beta if edge.weight != 0 else 0
-                        score = edge.pheromone * distance if edge.pheromone != 0 else 1*distance
-
-                        if not unvisited_cities and neighbor == start_node:
-                            score = score * 1000
-                        elif neighbor in path:
-                            if neighbor == last_city.node_name:
-                                score = score/1000
-                            score = already_visited_penalty * score # penalize already visited cities to avoid loops
-                        total += score
-                        neighbor_choice_probabilities.append(score)
-
-                    probabilities = []
-                    for p in neighbor_choice_probabilities:
-                        if p == 0:
-                            probabilities.append(0)
-                            continue
-                        probabilities.append(p / total)  # Calculate probabilities
-                    if current_city.node_name in unvisited_cities:
-                        unvisited_cities.remove(current_city.node_name)
-                    path.append(current_city.node_name)
-
-                    last_city = current_city
-                    # print("probabilities", sum(probabilities),probabilities)
-                    # print("path", path)
-                    current_city = self.nodes[np.random.choice(current_city.neighbors, p=probabilities)]  # Choose next city
-                    edges.append(self.get_edge(last_city.node_name, current_city.node_name))
-                    cost += self.get_edge(last_city.node_name, current_city.node_name).weight
-
-                path.append(start_node)
-                cost += self.get_edge(last_city.node_name, start_node).weight
-                paths.append((cost,path))
-
-                for edge in list(set(edges)):
-                    print("edge", edge.node1, edge.node2)
-                    edge.pheromone += 1 / cost
-                    edge.pheromone *= (1 - evaporation)  # Evaporate pheromone on all edges
-
-
-
-            best_path = min(paths, key=lambda x: x[0])
-        print("time", (time.time()-start_time)*1000,"ms")
-        print("best cost", best_path)
-
-
-
-
 
     def print_graph(self):
         print("Nodes:")
@@ -328,18 +248,89 @@ class Graph:
                     print("  ", i, self.edges[i].weight)
 
 
-graphe = Graph()
-utils = Utils()
-graphe.generate_random_graph(10)
-# graphe.node_and_edges_from_adjacency_matrix([[0, 0, 0, 0, 0, 0, 247, 0, 375, 0], [0, 0, 0, 4, 0, 0, 140, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 323, 457], [0, 4, 0, 0, 0, 0, 0, 287, 0, 0], [0, 0, 0, 0, 0, 0, 334, 0, 0, 116], [0, 0, 0, 0, 0, 0, 552, 0, 0, 485], [247, 140, 0, 0, 334, 552, 0, 0, 0, 0], [0, 0, 0, 287, 0, 0, 0, 0, 373, 0], [375, 0, 323, 0, 0, 0, 0, 373, 0, 0], [0, 0, 457, 0, 116, 485, 0, 0, 0, 0]])
-# print(graphe.is_eulerian_path())
-# graphe.print_adjency_matrix()
-graphe.plot_graph()
-graphe.print_adjency_matrix()
+def ACO(graph:Graph, start_node):
+    num_ants = 10
+    alpha = 1
+    beta = 2
+    evaporation = 0.5
+    already_visited_penalty = 0.5
+    best_path = []
 
-for i in graphe.nodes:
-    print(graphe.nodes[i].neighbors)
-# print(graphe.adjacencyMatrix)
-# print(graphe.print_graph())
-# graphe.aco_proto(0)
-utils.performance_test(graphe.aco_proto, {'start_node' : 0}, 100)
+        start_node = str(start_node)
+        # print("aco_proto", start_node)
+        # print("nodes", self.nodes)
+        # print("node", self.nodes[start_node])
+
+    start_time = time.time()
+
+    for _ in range(10): # Run ant colony optimization for a fixed number of iterations
+        paths = []
+        for _ in range(num_ants): # Create ant agents
+            print("ant", _)
+            current_city = graph.nodes[start_node]
+            unvisited_cities = list(graph.nodes.keys())
+            path = []
+            edges = []
+            cost = 0
+            last_city = None
+
+            iteration_time = time.time()
+
+            while (unvisited_cities!=[] or current_city.node_name != start_node): #and time.time()-iteration_time < 10: # Construct path by iteratively choosing next city until all cities have been visited or time is up (10 seconds)
+                # print("time", time.time()-iteration_time) #fixme
+                neighbor_choice_probabilities = []
+                total = 0
+
+                #choose next city
+                for neighbor in current_city.neighbors:
+
+                    edge = graph.get_edge(current_city.node_name, neighbor)
+                    pheromone = edge.pheromone ** alpha  # Calculate pheromone value
+                    distance = 1/edge.weight ** beta if edge.weight != 0 else 0
+                    score = edge.pheromone * distance if edge.pheromone != 0 else 1*distance
+
+                    if not unvisited_cities and neighbor == start_node:
+                        score = score * 1000
+                    elif neighbor in path:
+                        if neighbor == last_city.node_name:
+                            score = score/1000
+                        score = already_visited_penalty * score # penalize already visited cities to avoid loops
+                    total += score
+                    neighbor_choice_probabilities.append(score)
+
+                probabilities = []
+                for p in neighbor_choice_probabilities:
+                    if p == 0:
+                        probabilities.append(0)
+                        continue
+                    probabilities.append(p / total)  # Calculate probabilities
+                if current_city.node_name in unvisited_cities:
+                    unvisited_cities.remove(current_city.node_name)
+                path.append(current_city.node_name)
+                # print("current_city", unvisited_cities)
+
+                last_city = current_city
+                # print("probabilities", sum(probabilities),probabilities)
+                # print("path", path)
+                current_city = graph.nodes[np.random.choice(current_city.neighbors, p=probabilities)]  # Choose next city
+                edges.append(graph.get_edge(last_city.node_name, current_city.node_name))
+                cost += graph.get_edge(last_city.node_name, current_city.node_name).weight
+
+            path.append(start_node)
+            cost += graph.get_edge(last_city.node_name, start_node).weight
+            paths.append((cost,path))
+
+            for edge in list(set(edges)):
+                print("edge", edge.node1, edge.node2)
+                edge.pheromone += 1 / cost
+                edge.pheromone *= (1 - evaporation)  # Evaporate pheromone on all edges
+
+        best_path = min(paths, key=lambda x: x[0])
+    print("time", (time.time()-start_time)*1000,"ms")
+    print("best cost", best_path)
+    return best_path
+
+
+utils = Utils()
+
+utils.performance_test(ACO, {'start_node' : 0}, 10, 10)
