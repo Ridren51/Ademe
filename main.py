@@ -25,6 +25,15 @@ class Node:
 
 class Utils:
     def performance_test_multiple_instances(self, func, func_params:dict, iterations:int=1, instance_size:int=-1): #wrapper for performance test
+        """
+        :param func: function to test
+        :param func_params: default parameters of the function
+        :param iterations: number of iterations to run the test
+        :param instance_size: number of nodes in the graph
+        """
+
+        import csv
+        import os
         print("Running performance test for ", func.__name__, " with ", iterations, " iterations and ", instance_size, " nodes")
         import csv
         import os
@@ -60,6 +69,15 @@ class Utils:
         benchfile.close()
 
     def performance_test(self, func, func_params:dict, iterations:int=1, instance_size:int=-1, instance: list = None): #wrapper for performance test
+
+        """
+        :param func: function to test
+        :param func_params: default parameters of the function
+        :param iterations: number of iterations to run the test
+        :param instance_size: number of nodes in the graph
+        :param instance: adjacency matrix of the graph
+        """
+
         import os
         import csv
 
