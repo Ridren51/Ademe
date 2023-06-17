@@ -310,6 +310,19 @@ class Graph:
 
 
 def aco(graph:Graph, start_node, num_ants:int = 10, alpha:int = 1, beta:int = 2, evaporation:float = 0.5, already_visited_penalty:float = 0.5, iterations:int = 10):
+    """
+    :param graph: graph to use
+    :param start_node: node to start from
+    :param num_ants: number of ants to use
+    :param alpha: pheromone importance
+    :param beta: distance importance
+    :param evaporation: pheromone evaporation rate
+    :param already_visited_penalty: penalty for already visited nodes
+    :param iterations: number of iterations to run
+    :return: tuple of (best path cost, best path)
+    """
+
+
     best_path = []
 
     start_node = str(start_node)
@@ -319,7 +332,7 @@ def aco(graph:Graph, start_node, num_ants:int = 10, alpha:int = 1, beta:int = 2,
 
     start_time = time.time()
 
-    for _ in range(10): # Run ant colony optimization for a fixed number of iterations
+    for _ in range(iterations): # Run ant colony optimization for a fixed number of iterations
         paths = []
         for _ in range(num_ants): # Create ant agents
             print("ant", _)
