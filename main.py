@@ -309,12 +309,7 @@ class Graph:
                     print("  ", i, self.edges[i].weight)
 
 
-def aco(graph:Graph, start_node):
-    num_ants = 10
-    alpha = 1
-    beta = 2
-    evaporation = 0.5
-    already_visited_penalty = 0.5
+def aco(graph:Graph, start_node, num_ants:int = 10, alpha:int = 1, beta:int = 2, evaporation:float = 0.5, already_visited_penalty:float = 0.5, iterations:int = 10):
     best_path = []
 
     start_node = str(start_node)
