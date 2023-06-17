@@ -5,11 +5,11 @@ import matplotlib.pyplot as plt
 
 X = 100
 Y = 100
-n = 10
+n = 50
 price = 1.700
 
 human_cost = 0
-ecological_cost = 0
+ecological_cost = 1
 timecost = 1
 
 # EXECUTION SECTION
