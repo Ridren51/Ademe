@@ -24,7 +24,7 @@ class Node:
 
 
 class Utils:
-    def performance_test(self, func, func_params:dict, iterations:int=1, instance_size:int=-1): #wrapper for performance test
+    def performance_test_multiple_instances(self, func, func_params:dict, iterations:int=1, instance_size:int=-1): #wrapper for performance test
         print("Running performance test for ", func.__name__, " with ", iterations, " iterations and ", instance_size, " nodes")
         import csv
         import os
@@ -32,9 +32,9 @@ class Utils:
         filename=f'vendor/benchmarks/{func.__name__}/'
         os.makedirs(os.path.dirname(filename), exist_ok=True)
 
-        with open(f"{filename}/{datetime.datetime.now().strftime('%d-%m-%Y_%H-%M-%S')}.csv", mode='w') as benchfile:
+        with open(f"{filename}/{datetime.datetime.now().strftime('%d-%m-%Y_%H-%M-%S')}.csv", mode='w', newline='') as benchfile:
             writer = csv.writer(benchfile, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
-            writer.writerow(["iteration", "runtime", "CPU", "memory", "nb_nodes", "nb_edges", "cost", "path"])
+            writer.writerow(["iteration", "runtime (ms)", "CPU time (ms)", "memory (mb)", "nb_nodes", "nb_edges", "cost", "path"])
 
             for iteration in range(iterations):
                 grapher = Graph()
@@ -56,7 +56,50 @@ class Utils:
                 end_memory_usage = psutil.Process().memory_info().rss / 1024 / 1024  # Convert to megabytes
                 end_time = time.time()
 
-                writer.writerow([iteration, end_time - start_time, end_cpu_time - start_cpu_time, end_memory_usage - start_memory_usage, len(grapher.nodes), len(grapher.edges), result[0],result[1]])
+                writer.writerow([iteration, (end_time - start_time)*1000, (end_cpu_time - start_cpu_time)*1000, end_memory_usage - start_memory_usage, len(grapher.nodes), len(grapher.edges), result[0],result[1]])
+        benchfile.close()
+
+    def performance_test(self, func, func_params:dict, iterations:int=1, instance_size:int=-1, instance: list = None): #wrapper for performance test
+        import os
+        import csv
+
+        print("Running performance test for ", func.__name__, " with ", iterations, " iterations and ",
+              instance_size, " nodes")
+
+        if instance is None:
+            grapher = Graph()
+            if instance_size != -1:
+                grapher.generate_random_graph(instance_size)
+            else:
+                grapher.generate_random_graph(rd.randint(10, 100))
+
+        else:
+            grapher = Graph()
+            grapher.node_and_edges_from_adjacency_matrix(instance)
+
+
+
+        filename = f'vendor/benchmarks/{func.__name__}/'
+        os.makedirs(os.path.dirname(filename), exist_ok=True)
+
+        with open(f"{filename}/{datetime.datetime.now().strftime('%d-%m-%Y_%H-%M-%S')}.csv", mode='w', newline='') as benchfile:
+            writer = csv.writer(benchfile, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
+            writer.writerow(["iteration", "runtime (ms)", "CPU time (ms)", "memory (mb)", "nb_nodes", "nb_edges", "cost", "path"])
+
+            for iteration in range(iterations):
+                start_time = time.time()
+                start_cpu_time = psutil.Process().cpu_times().user  # Measure CPU time before running the algorithm
+                start_memory_usage = psutil.Process().memory_info().rss / 1024 / 1024  # Convert to megabytes
+
+                result = func(graph=grapher, **func_params)
+                print("result: ", result)
+
+                end_cpu_time = psutil.Process().cpu_times().user  # Measure CPU time after running the algorithm
+                end_memory_usage = psutil.Process().memory_info().rss / 1024 / 1024  # Convert to megabytes
+                end_time = time.time()
+
+                writer.writerow([iteration, (end_time - start_time)*1000, (end_cpu_time - start_cpu_time)*1000, end_memory_usage - start_memory_usage, len(grapher.nodes), len(grapher.edges), result[0], result[1]])
+        benchfile.close()
 
 class Graph:
     def __init__(self):
@@ -248,7 +291,7 @@ class Graph:
                     print("  ", i, self.edges[i].weight)
 
 
-def ACO(graph:Graph, start_node):
+def aco(graph:Graph, start_node):
     num_ants = 10
     alpha = 1
     beta = 2
@@ -333,4 +376,4 @@ def ACO(graph:Graph, start_node):
 
 utils = Utils()
 
-utils.performance_test(ACO, {'start_node' : 0}, 10, 10)
+utils.performance_test(aco, {'start_node' : 0}, 10, 10)
