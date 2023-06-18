@@ -25,16 +25,17 @@ class Node:
 
 class Utils:
 
-    def instance_starter(self, instance=None, instance_size=-1):
-        grapher = Graph()
+    def instance_starter(self, instance:object=None, instance_size=-1):
+
         if instance is None:
+            grapher = Graph()
             if instance_size != -1:
                 grapher.generate_random_graph(instance_size)
             else:
                 grapher.generate_random_graph(rd.randint(10, 100))
 
         else:
-            grapher.node_and_edges_from_adjacency_matrix(instance)
+            grapher = instance
         return grapher
     def performance_test_multiple_instances(self, func, func_params:dict, iterations:int=1, instance_size:int=-1): #wrapper for performance test
         """
