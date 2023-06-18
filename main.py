@@ -24,6 +24,18 @@ class Node:
 
 
 class Utils:
+
+    def instance_starter(self, instance=None, instance_size=-1):
+        grapher = Graph()
+        if instance is None:
+            if instance_size != -1:
+                grapher.generate_random_graph(instance_size)
+            else:
+                grapher.generate_random_graph(rd.randint(10, 100))
+
+        else:
+            grapher.node_and_edges_from_adjacency_matrix(instance)
+        return grapher
     def performance_test_multiple_instances(self, func, func_params:dict, iterations:int=1, instance_size:int=-1): #wrapper for performance test
         """
         :param func: function to test
@@ -35,8 +47,6 @@ class Utils:
         import csv
         import os
         print("Running performance test for ", func.__name__, " with ", iterations, " iterations and ", instance_size, " nodes")
-        import csv
-        import os
 
         filename=f'vendor/benchmarks/{func.__name__}/'
         os.makedirs(os.path.dirname(filename), exist_ok=True)
@@ -46,11 +56,7 @@ class Utils:
             writer.writerow(["iteration", "runtime (ms)", "CPU time (ms)", "memory (mb)", "nb_nodes", "nb_edges", "cost", "path"])
 
             for iteration in range(iterations):
-                grapher = Graph()
-                if instance_size != -1:
-                    grapher.generate_random_graph(instance_size)
-                else:
-                    grapher.generate_random_graph(rd.randint(10, 100))
+                grapher=self.instance_starter(instance_size=instance_size)
 
                 start_time = time.time()
                 start_cpu_time = psutil.Process().cpu_times().user  # Measure CPU time before running the algorithm
@@ -84,16 +90,7 @@ class Utils:
         print("Running performance test for ", func.__name__, " with ", iterations, " iterations and ",
               instance_size, " nodes")
 
-        if instance is None:
-            grapher = Graph()
-            if instance_size != -1:
-                grapher.generate_random_graph(instance_size)
-            else:
-                grapher.generate_random_graph(rd.randint(10, 100))
-
-        else:
-            grapher = Graph()
-            grapher.node_and_edges_from_adjacency_matrix(instance)
+        grapher = self.instance_starter(instance=instance, instance_size=instance_size)
 
 
 
