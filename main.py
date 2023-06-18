@@ -318,6 +318,7 @@ class Graph:
                     else:
                         self.add_edge(str(e[0]), str(e[1]), 0)
 
+        self.adjacency_matrix()
         print("graph generated in ", (time.time() - start_time)*1000, "ms")
 
 
