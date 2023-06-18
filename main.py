@@ -168,7 +168,7 @@ class Utils:
                 writer.writerow([iteration, (end_time - start_time) * 1000, (end_cpu_time - start_cpu_time) * 1000,
                                  end_memory_usage - start_memory_usage, len(grapher.nodes), len(grapher.edges), func_params, result[0],
                                  result[1]])
-            benchfile.close()
+        benchfile.close()
 
 
 
