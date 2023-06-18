@@ -1,20 +1,18 @@
 import random
 import time
+import numpy as np
 import cProfile
-import tsplib95
+from collections import defaultdict
 
 from main import Graph, Utils
 
 
-def genetic(graph):
-    # graph.node_and_edges_from_adjacency_matrix([[0, 0, 0, 0, 0, 0, 247, 0, 375, 0], [0, 0, 0, 4, 0, 0, 140, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 323, 457], [0, 4, 0, 0, 0, 0, 0, 287, 0, 0], [0, 0, 0, 0, 0, 0, 334, 0, 0, 116], [0, 0, 0, 0, 0, 0, 552, 0, 0, 485], [247, 140, 0, 0, 334, 552, 0, 0, 0, 0], [0, 0, 0, 287, 0, 0, 0, 0, 373, 0], [375, 0, 323, 0, 0, 0, 0, 373, 0, 0], [0, 0, 457, 0, 116, 485, 0, 0, 0, 0]])
-    #graph.plot_graph()
-    graph.generate_random_graph(100)
-    nb_solutions = 20
-    nb_kept_solutions = 10
-    nb_generations = 50
+def genetic(graph, nb_generations, nb_solutions, nb_kept_solutions, mutation_rate, start_node):
+    graph.node_and_edges_from_adjacency_matrix([[0, 0, 0, 0, 0, 0, 247, 0, 375, 0], [0, 0, 0, 4, 0, 0, 140, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 323, 457], [0, 4, 0, 0, 0, 0, 0, 287, 0, 0], [0, 0, 0, 0, 0, 0, 334, 0, 0, 116], [0, 0, 0, 0, 0, 0, 552, 0, 0, 485], [247, 140, 0, 0, 334, 552, 0, 0, 0, 0], [0, 0, 0, 287, 0, 0, 0, 0, 373, 0], [375, 0, 323, 0, 0, 0, 0, 373, 0, 0], [0, 0, 457, 0, 116, 485, 0, 0, 0, 0]])
+    # graph.generate_random_graph(100)
+    graph.plot_graph()
+
     generation = []
-    start_node = '0'
     solutions = []
 
     start_time = time.time()
@@ -33,21 +31,26 @@ def genetic(graph):
             )
 
         generation = fitness(graph, solutions, generation)
+        if _ == nb_generations-1:
+            print('best found path before crossover and mutation :', generation[0])
         # print('fitness done')
 
         best_solutions = [generation[0][1]]
-        # start = time.time()
+        start = time.time()
         best_solutions.extend(
             cross_over(
                 generation[i][1], generation[i + 1][1], graph, start_node
             )
             for i in range(nb_kept_solutions - 1)
         )
-        # print(time.time() - start, 's')
+        print('crossover time :',time.time() - start, 's')
         # print('crossover done')
 
+        start = time.time()
         for i in range(len(best_solutions)):
-            best_solutions[i] = mutation(best_solutions[i], graph)
+            best_solutions[i] = mutation(best_solutions[i], mutation_rate, graph)
+
+        print('all mutation time :', time.time() - start, 's')
         solutions = best_solutions
         generation = []
 
@@ -55,7 +58,7 @@ def genetic(graph):
     print('best found path :',best_found_path)
     print(len(best_found_path[1]))
 
-    print("graph generated in ", (time.time() - start_time) * 1000, "ms")
+    print("best path found in", (time.time() - start_time) * 1000, "ms")
 
     return best_found_path
 
@@ -84,19 +87,21 @@ def random_solution(graph, start_node):
 
     return path
 
+
+
 def cross_over(parent_1,parent_2,graph,start_node):
+    def create_indices_dict(parent):
+        indices_dict = defaultdict(list)
+        for index, node in enumerate(parent):
+            indices_dict[node].append(index)
+        return indices_dict
+
     new_path = [start_node]
     nodes_list = list(graph.nodes.keys())
     nodes_list.remove(start_node)
-    indices_dict_parent_1 = {
-        node: [index for index, x in enumerate(parent_1) if x == node]
-        for node in set(parent_1)
-    }
 
-    indices_dict_parent_2 = {
-        node: [index for index, x in enumerate(parent_2) if x == node]
-        for node in set(parent_2)
-    }
+    indices_dict_parent_1 = create_indices_dict(parent_1)
+    indices_dict_parent_2 = create_indices_dict(parent_2)
 
     current_node = start_node
     while nodes_list or new_path[0] != new_path[-1]:
@@ -129,32 +134,41 @@ def cross_over(parent_1,parent_2,graph,start_node):
     return new_path
 
 
-def mutation(sol, graph):
-    for _ in range(100):  # Limit to a certain number of tries
-        # Choose two node indices at random from the solution
-        idx1, idx2 = random.sample(range(1, len(sol)), 2)
+def mutation(sol, rate, graph):
+    def is_valid_path(path, i1, i2, graph):
+        if graph.get_edge(path[i1],path[i1+1]) and graph.get_edge(path[i1], path[i1 - 1]) and graph.get_edge(path[i2], path[i2 + 1]) and graph.get_edge(path[i2], path[i2 - 1]):
+            return True
+        # return all(graph.get_edge(path[i], path[i + 1]) for i in range(len(path) - 1))
 
-        # Swap the nodes at these indices
-        mutated_sol = list(sol)
-        mutated_sol[idx1], mutated_sol[idx2] = sol[idx2], sol[idx1]
+    if random.random() <= rate:
+        for _ in range(len(sol)*10):  # Limit to a certain number of tries
+            # Choose two node indices at random from the solution
+            idx1, idx2 = random.sample(range(1, len(sol)-1), 2)
 
-        # Verify if the mutated solution is still a valid path
-        if is_valid_path(mutated_sol, graph):
-            # print('mutation success')
-            return mutated_sol
+            if sol[idx1] == sol[idx2]:
+                continue
 
+            # Swap the nodes at these indices
+            mutated_sol = list(sol)
+            mutated_sol[idx1], mutated_sol[idx2] = sol[idx2], sol[idx1]
+
+            # Verify if the mutated solution is still a valid path
+            if is_valid_path(mutated_sol, idx1, idx2, graph):
+                return mutated_sol
     # If no valid mutation was found, return the original solution
     return sol
-
-
-def is_valid_path(path, graph):
-    return all(graph.get_edge(path[i], path[i+1]) for i in range(len(path) - 1))
 
 
 genetic_graph = Graph()
 # utils = Utils()
 # utils.performance_test(genetic,{},10)
 
+nb_gen = 100
+nb_sol = 1000
+nb_kept_sol = 100
+mut_rate = .9
+start_n = '0'
 
-# genetic(genetic_graph)
-cProfile.run('genetic(genetic_graph)')
+
+genetic(genetic_graph, nb_gen, nb_sol, nb_kept_sol, mut_rate, start_n)
+# cProfile.run('genetic(genetic_graph)')
