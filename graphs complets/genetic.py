@@ -1,10 +1,7 @@
 import random
 import time
-import numpy as np
-import cProfile
 from collections import defaultdict
-
-from main import Graph, Utils
+from graph import Graph
 
 
 def genetic(graph, nb_generations, nb_solutions, nb_kept_solutions, mutation_rate, start_node):
