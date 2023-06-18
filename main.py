@@ -267,7 +267,7 @@ class Graph:
         self.edges = {}
         self.adjacencyMatrix = []
 
-    def generate_random_graph(self, nodes: int=20): #todo coef pour chaque variable (conso, temps, cout)
+    def generate_random_graph(self, nodes: int=20, p:float=.5): #todo coef pour chaque variable (conso, temps, cout)
         import networkx as nx
 
         #clear existing graph
@@ -275,7 +275,6 @@ class Graph:
 
         start_time = time.time()
 
-        p=.0001
         consumption_from_speed = {30: 55, 40: 48, 50: 44, 70: 33, 90: 38, 110: 44, 130: 51} # {speed in km/h: consumption in L/100km}
         job_cost_per_hour = 9  # €/h
         fuel_cost_per_liter = 1.5  # €/L
