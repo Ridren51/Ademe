@@ -301,8 +301,11 @@ class Graph:
         self.add_nodes_from_list(list(range(nodes)))
 
         if p >= 1:
-            g = nx.complete_graph(nodes)
-            self.node_and_edges_from_adjacency_matrix(nx.adjacency_matrix(g).todense())
+            for node_edges in edges:
+                node_edge=list(node_edges)
+                node_edge.append(create_travel_cost())
+                self.add_edge(str(node_edge[0]), str(node_edge[1]), node_edge[2])
+
         for node, node_edges in groupby(edges, key=lambda x: x[0]):
             node_edges = list(node_edges)
             choice = rd.choice(node_edges)
