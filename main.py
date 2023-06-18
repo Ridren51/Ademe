@@ -25,16 +25,17 @@ class Node:
 
 class Utils:
 
-    def instance_starter(self, instance=None, instance_size=-1):
-        grapher = Graph()
+    def instance_starter(self, instance:object=None, instance_size=-1):
+
         if instance is None:
+            grapher = Graph()
             if instance_size != -1:
                 grapher.generate_random_graph(instance_size)
             else:
                 grapher.generate_random_graph(rd.randint(10, 100))
 
         else:
-            grapher.node_and_edges_from_adjacency_matrix(instance)
+            grapher = instance
         return grapher
     def performance_test_multiple_instances(self, func, func_params:dict, iterations:int=1, instance_size:int=-1): #wrapper for performance test
         """
@@ -74,7 +75,7 @@ class Utils:
                 writer.writerow([iteration, (end_time - start_time)*1000, (end_cpu_time - start_cpu_time)*1000, end_memory_usage - start_memory_usage, len(grapher.nodes), len(grapher.edges), result[0],result[1]])
         benchfile.close()
 
-    def performance_test(self, func, func_params:dict, iterations:int=1, instance_size:int=-1, instance: list = None): #wrapper for performance test
+    def performance_test(self, func, func_params:dict, iterations:int=1, instance_size:int=-1, instance: object = None): #wrapper for performance test
 
         """
         :param func: function to test
@@ -117,7 +118,7 @@ class Utils:
         benchfile.close()
 
 
-    def aco_parameters_test(self, func, func_params:dict, parameters:dict, iterations:int=100, instance_size:int=-1, instance: list = None):    #wrapper which tests a function with varying parameters
+    def aco_parameters_test(self, func, func_params:dict, parameters:dict, iterations:int=1000, instance_size:int=-1, instance: object = None):    #wrapper which tests a function with varying parameters
         """
         :param func: function to test
         :param func_params: default parameters of the function
@@ -167,7 +168,7 @@ class Utils:
                 writer.writerow([iteration, (end_time - start_time) * 1000, (end_cpu_time - start_cpu_time) * 1000,
                                  end_memory_usage - start_memory_usage, len(grapher.nodes), len(grapher.edges), func_params, result[0],
                                  result[1]])
-            benchfile.close()
+        benchfile.close()
 
 
 
@@ -266,7 +267,7 @@ class Graph:
         self.edges = {}
         self.adjacencyMatrix = []
 
-    def generate_random_graph(self, nodes: int=20): #todo coef pour chaque variable (conso, temps, cout)
+    def generate_random_graph(self, nodes: int=20, p:float=.5): #todo coef pour chaque variable (conso, temps, cout)
         import networkx as nx
 
         #clear existing graph
@@ -274,7 +275,6 @@ class Graph:
 
         start_time = time.time()
 
-        p=.0001
         consumption_from_speed = {30: 55, 40: 48, 50: 44, 70: 33, 90: 38, 110: 44, 130: 51} # {speed in km/h: consumption in L/100km}
         job_cost_per_hour = 9  # €/h
         fuel_cost_per_liter = 1.5  # €/L
@@ -301,8 +301,11 @@ class Graph:
         self.add_nodes_from_list(list(range(nodes)))
 
         if p >= 1:
-            g = nx.complete_graph(nodes)
-            self.node_and_edges_from_adjacency_matrix(nx.adjacency_matrix(g).todense())
+            for node_edges in edges:
+                node_edge=list(node_edges)
+                node_edge.append(create_travel_cost())
+                self.add_edge(str(node_edge[0]), str(node_edge[1]), node_edge[2])
+
         for node, node_edges in groupby(edges, key=lambda x: x[0]):
             node_edges = list(node_edges)
             choice = rd.choice(node_edges)
@@ -315,6 +318,7 @@ class Graph:
                     else:
                         self.add_edge(str(e[0]), str(e[1]), 0)
 
+        self.adjacency_matrix()
         print("graph generated in ", (time.time() - start_time)*1000, "ms")
 
 
@@ -389,6 +393,7 @@ def aco(graph:Graph, start_node, num_ants:int = 10, alpha:int = 1, beta:int = 2,
 
     start_time = time.time()
 
+    max_iterations_without_improvement = len(graph.nodes)*2
     for _ in range(iterations): # Run ant colony optimization for a fixed number of iterations
         paths = []
         for _ in range(num_ants): # Create ant agents
@@ -402,7 +407,10 @@ def aco(graph:Graph, start_node, num_ants:int = 10, alpha:int = 1, beta:int = 2,
 
             iteration_time = time.time()
 
-            while (unvisited_cities!=[] or current_city.node_name != start_node): #and time.time()-iteration_time < 10: # Construct path by iteratively choosing next city until all cities have been visited or time is up (10 seconds)
+            iterations_without_improvement = 0
+            last_size_unvisited_cities=len(unvisited_cities)
+
+            while (unvisited_cities!=[] or current_city.node_name != start_node) : #and time.time()-iteration_time < 10: # Construct path by iteratively choosing next city until all cities have been visited or time is up (10 seconds)
                 # print("time", time.time()-iteration_time) #fixme
                 neighbor_choice_probabilities = []
                 total = 0
@@ -433,27 +441,38 @@ def aco(graph:Graph, start_node, num_ants:int = 10, alpha:int = 1, beta:int = 2,
                 if current_city.node_name in unvisited_cities:
                     unvisited_cities.remove(current_city.node_name)
                 path.append(current_city.node_name)
+
+
+                if len(unvisited_cities) < last_size_unvisited_cities:
+                    iterations_without_improvement = 0
+                else:
+                    iterations_without_improvement += 1
+                last_size_unvisited_cities = len(unvisited_cities)
+                if iterations_without_improvement > max_iterations_without_improvement:
+                    # print("stuck")
+                    break
                 # print("current_city", unvisited_cities)
 
                 last_city = current_city
-                # print("probabilities", sum(probabilities),probabilities)
-                # print("path", path)
                 current_city = graph.nodes[np.random.choice(current_city.neighbors, p=probabilities)]  # Choose next city
                 edges.append(graph.get_edge(last_city.node_name, current_city.node_name))
                 cost += graph.get_edge(last_city.node_name, current_city.node_name).weight
 
-            path.append(start_node)
-            cost += graph.get_edge(last_city.node_name, start_node).weight
-            paths.append((cost,path))
+            if iterations_without_improvement < max_iterations_without_improvement:
+                path.append(start_node)
+                cost += graph.get_edge(last_city.node_name, start_node).weight
+                paths.append((cost,path))
 
-            for edge in list(set(edges)):
-                print("edge", edge.node1, edge.node2)
-                edge.pheromone += 1 / cost
-                edge.pheromone *= (1 - evaporation)  # Evaporate pheromone on all edges
-
+                for edge in list(set(edges)):
+                    edge.pheromone += 1 / cost
+                    edge.pheromone *= (1 - evaporation)  # Evaporate pheromone on all edges
+        if not paths:
+            best_path = ('no reasonable path found', [])
+            continue
         best_path = min(paths, key=lambda x: x[0])
     print("time", (time.time()-start_time)*1000,"ms")
     print("best cost", best_path)
+    print('length', len(best_path[1]))
     return best_path
 
 
