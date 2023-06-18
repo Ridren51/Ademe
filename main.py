@@ -390,6 +390,7 @@ def aco(graph:Graph, start_node, num_ants:int = 10, alpha:int = 1, beta:int = 2,
 
     start_time = time.time()
 
+    max_iterations_without_improvement = len(graph.nodes)*2
     for _ in range(iterations): # Run ant colony optimization for a fixed number of iterations
         paths = []
         for _ in range(num_ants): # Create ant agents
@@ -403,7 +404,10 @@ def aco(graph:Graph, start_node, num_ants:int = 10, alpha:int = 1, beta:int = 2,
 
             iteration_time = time.time()
 
-            while (unvisited_cities!=[] or current_city.node_name != start_node): #and time.time()-iteration_time < 10: # Construct path by iteratively choosing next city until all cities have been visited or time is up (10 seconds)
+            iterations_without_improvement = 0
+            last_size_unvisited_cities=len(unvisited_cities)
+
+            while (unvisited_cities!=[] or current_city.node_name != start_node) : #and time.time()-iteration_time < 10: # Construct path by iteratively choosing next city until all cities have been visited or time is up (10 seconds)
                 # print("time", time.time()-iteration_time) #fixme
                 neighbor_choice_probabilities = []
                 total = 0
@@ -434,27 +438,38 @@ def aco(graph:Graph, start_node, num_ants:int = 10, alpha:int = 1, beta:int = 2,
                 if current_city.node_name in unvisited_cities:
                     unvisited_cities.remove(current_city.node_name)
                 path.append(current_city.node_name)
+
+
+                if len(unvisited_cities) < last_size_unvisited_cities:
+                    iterations_without_improvement = 0
+                else:
+                    iterations_without_improvement += 1
+                last_size_unvisited_cities = len(unvisited_cities)
+                if iterations_without_improvement > max_iterations_without_improvement:
+                    # print("stuck")
+                    break
                 # print("current_city", unvisited_cities)
 
                 last_city = current_city
-                # print("probabilities", sum(probabilities),probabilities)
-                # print("path", path)
                 current_city = graph.nodes[np.random.choice(current_city.neighbors, p=probabilities)]  # Choose next city
                 edges.append(graph.get_edge(last_city.node_name, current_city.node_name))
                 cost += graph.get_edge(last_city.node_name, current_city.node_name).weight
 
-            path.append(start_node)
-            cost += graph.get_edge(last_city.node_name, start_node).weight
-            paths.append((cost,path))
+            if iterations_without_improvement < max_iterations_without_improvement:
+                path.append(start_node)
+                cost += graph.get_edge(last_city.node_name, start_node).weight
+                paths.append((cost,path))
 
-            for edge in list(set(edges)):
-                print("edge", edge.node1, edge.node2)
-                edge.pheromone += 1 / cost
-                edge.pheromone *= (1 - evaporation)  # Evaporate pheromone on all edges
-
+                for edge in list(set(edges)):
+                    edge.pheromone += 1 / cost
+                    edge.pheromone *= (1 - evaporation)  # Evaporate pheromone on all edges
+        if not paths:
+            best_path = ('no reasonable path found', [])
+            continue
         best_path = min(paths, key=lambda x: x[0])
     print("time", (time.time()-start_time)*1000,"ms")
     print("best cost", best_path)
+    print('length', len(best_path[1]))
     return best_path
 
 
