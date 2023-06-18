@@ -8,9 +8,9 @@ from main import Graph, Utils
 
 
 def genetic(graph, nb_generations, nb_solutions, nb_kept_solutions, mutation_rate, start_node):
-    graph.node_and_edges_from_adjacency_matrix([[0, 0, 0, 0, 0, 0, 247, 0, 375, 0], [0, 0, 0, 4, 0, 0, 140, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 323, 457], [0, 4, 0, 0, 0, 0, 0, 287, 0, 0], [0, 0, 0, 0, 0, 0, 334, 0, 0, 116], [0, 0, 0, 0, 0, 0, 552, 0, 0, 485], [247, 140, 0, 0, 334, 552, 0, 0, 0, 0], [0, 0, 0, 287, 0, 0, 0, 0, 373, 0], [375, 0, 323, 0, 0, 0, 0, 373, 0, 0], [0, 0, 457, 0, 116, 485, 0, 0, 0, 0]])
-    # graph.generate_random_graph(100)
-    graph.plot_graph()
+    # graph.node_and_edges_from_adjacency_matrix([[0, 0, 0, 0, 0, 0, 247, 0, 375, 0], [0, 0, 0, 4, 0, 0, 140, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 323, 457], [0, 4, 0, 0, 0, 0, 0, 287, 0, 0], [0, 0, 0, 0, 0, 0, 334, 0, 0, 116], [0, 0, 0, 0, 0, 0, 552, 0, 0, 485], [247, 140, 0, 0, 334, 552, 0, 0, 0, 0], [0, 0, 0, 287, 0, 0, 0, 0, 373, 0], [375, 0, 323, 0, 0, 0, 0, 373, 0, 0], [0, 0, 457, 0, 116, 485, 0, 0, 0, 0]])
+    graph.generate_random_graph(100)
+    # graph.plot_graph()
 
     generation = []
     solutions = []
@@ -163,10 +163,10 @@ genetic_graph = Graph()
 # utils = Utils()
 # utils.performance_test(genetic,{},10)
 
-nb_gen = 100
+nb_gen = 50
 nb_sol = 1000
 nb_kept_sol = 100
-mut_rate = .9
+mut_rate = .25
 start_n = '0'
 
 
