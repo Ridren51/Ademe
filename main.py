@@ -75,7 +75,7 @@ class Utils:
                 writer.writerow([iteration, (end_time - start_time)*1000, (end_cpu_time - start_cpu_time)*1000, end_memory_usage - start_memory_usage, len(grapher.nodes), len(grapher.edges), result[0],result[1]])
         benchfile.close()
 
-    def performance_test(self, func, func_params:dict, iterations:int=1, instance_size:int=-1, instance: list = None): #wrapper for performance test
+    def performance_test(self, func, func_params:dict, iterations:int=1, instance_size:int=-1, instance: object = None): #wrapper for performance test
 
         """
         :param func: function to test
@@ -118,7 +118,7 @@ class Utils:
         benchfile.close()
 
 
-    def aco_parameters_test(self, func, func_params:dict, parameters:dict, iterations:int=100, instance_size:int=-1, instance: list = None):    #wrapper which tests a function with varying parameters
+    def aco_parameters_test(self, func, func_params:dict, parameters:dict, iterations:int=1000, instance_size:int=-1, instance: object = None):    #wrapper which tests a function with varying parameters
         """
         :param func: function to test
         :param func_params: default parameters of the function
