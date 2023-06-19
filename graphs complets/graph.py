@@ -310,6 +310,27 @@ class Graph:
         print("graph plotted in ", (time.time() - start_time)*1000, "ms")
 
 
+    def graph_from_coordinates(self, coordinates: list):
+        """
+        Generates graph from coordinates
+        :param coordinates: list of coordinates [[x1, y1], [x2, y2], ...]
+        :return: None
+        """
+
+        self.clear()
+        for i in range(len(coordinates)):
+            self.add_node(str(i))
+
+        for i in self.nodes:
+            for j in self.nodes:
+                if i != j:
+                    x1, y1 = coordinates[int(i)].split(";")
+                    x2, y2 = coordinates[int(j)].split(";")
+                    weight = self.create_travel_cost(distance=((int(x2) - int(x1)) ** 2 + (int(y2) - int(y1)) ** 2) ** 0.5)
+                    self.add_edge(str(i), str(j), weight)
+
+
+
     def print_graph(self):
         """
         Prints formatted graph content
