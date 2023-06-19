@@ -224,14 +224,9 @@ class Graph:
 
         #todo coef pour chaque variable (conso, temps, cout)
 
-
         self.clear() #clear existing graph
 
         start_time = time.time()
-
-
-
-
 
         """
         Generates a random undirected graph, similarly to an Erdős-Rényi
@@ -328,6 +323,28 @@ class Graph:
                     x2, y2 = coordinates[int(j)].split(";")
                     weight = self.create_travel_cost(distance=((int(x2) - int(x1)) ** 2 + (int(y2) - int(y1)) ** 2) ** 0.5)
                     self.add_edge(str(i), str(j), weight)
+
+
+    def graph_from_file(self, file: str):
+        """
+        Generate graph from file
+        :param file: file path
+        :return: None
+        """
+        self.clear()
+
+        with open(file, "r") as f:
+            coords = f.readlines()
+
+            self.add_nodes_from_list(list(range(len(coords))))
+
+            for i in self.nodes:
+                for j in self.nodes:
+                    if i != j:
+                        x1, y1 = coords[int(i)].split(" ")[:2]
+                        x2, y2 = coords[int(j)].split(" ")[:2]
+                        weight = self.create_travel_cost(distance=((int(x2) - int(x1)) ** 2 + (int(y2) - int(y1)) ** 2) ** 0.5)
+                        self.add_edge(str(i), str(j), weight)
 
 
 
