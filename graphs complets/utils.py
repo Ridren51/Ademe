@@ -53,9 +53,10 @@ class Utils:
                 start_cpu_time = psutil.Process().cpu_times().user  # Measure CPU time before running the algorithm
                 start_memory_usage = psutil.Process().memory_info().rss / 1024 / 1024  # Convert to megabytes
 
-
-                result = func(graph=grapher,**func_params) #run the algorithm
-
+                try:
+                    result = func(graph=grapher,**func_params) #run the algorithm
+                except Exception:
+                    result = ("error", [])
 
                 end_cpu_time = psutil.Process().cpu_times().user  # Measure CPU time after running the algorithm
                 end_memory_usage = psutil.Process().memory_info().rss / 1024 / 1024  # Convert to megabytes
@@ -144,7 +145,10 @@ class Utils:
                 #create random parameters in the range specified
                 func_params = {'num_ants': rd.randint(parameters['num_ants'][0],parameters['num_ants'][1]), 'alpha': rd.randint(parameters['alpha'][0],parameters['alpha'][1]), 'beta': rd.randint(parameters['beta'][0],parameters['beta'][1]), 'evaporation': rd.uniform(parameters['evaporation'][0],parameters['evaporation'][1]), 'already_visited_penalty': rd.uniform(parameters['already_visited_penalty'][0],parameters['already_visited_penalty'][1])}
 
-                result = aco(graph=grapher, start_node=0, **func_params) #run the algorithm
+                try:
+                    result = aco(graph=grapher, start_node=0, **func_params) #run the algorithm
+                except Exception:
+                    result = ["error", []]
 
                 end_cpu_time = psutil.Process().cpu_times().user  # Measure CPU time after running the algorithm
                 end_memory_usage = psutil.Process().memory_info().rss / 1024 / 1024  # Convert to megabytes
