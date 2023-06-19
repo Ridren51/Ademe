@@ -1,3 +1,7 @@
+import csv
+import datetime
+import os
+
 import numpy as np
 import psutil
 import time
@@ -146,7 +150,7 @@ def ant_colony(coordinates, distance_matrix, num_ants, alpha, beta, evaporation,
 
         # Return all the paths and the total cost
         return all_truck_paths, total_cost
-def running():
+def running(perf_iterations:int=1):
     # Plot the CPU usage graph
     cpu_percentages = []
     memory_usages = []
@@ -157,26 +161,49 @@ def running():
     distance_matrix = read_cost_matrix()
     num_cities = len(coordinates)
 
-    # Start time and resource usage
-    start_time = time.time()
-    start_cpu_time = psutil.Process().cpu_times().user
-    start_memory_usage = psutil.Process().memory_info().rss / 1024 / 1024
+    writer = None
 
-    # Run the ant colony optimization algorithm
-    if nb_trucks == 1:
-        best_path, best_cost = ant_colony(coordinates, distance_matrix, num_ants, alpha, beta, evaporation, nb_trucks)
-    else:
-        all_truck_paths, total_cost = ant_colony(coordinates, distance_matrix, num_ants, alpha, beta, evaporation,
-                                                 nb_trucks)
-    # End time and resource usage
-    end_cpu_time = psutil.Process().cpu_times().user
-    end_memory_usage = psutil.Process().memory_info().rss / 1024 / 1024
-    end_time = time.time()
+    if perf_iterations > 1:
+        filename = 'vendor/benchmarks/ant_complete/'
+        os.makedirs(os.path.dirname(filename), exist_ok=True)  # create folder if it doesn't exist
+        benchfile = open(f"{filename}/{datetime.datetime.now().strftime('%d-%m-%Y_%H-%M-%S')}.csv", mode='w',newline='')# open file
 
-    # Calculate execution time and resource usage
-    execution_time = end_time - start_time
-    cpu_time = end_cpu_time - start_cpu_time
-    memory_usage = end_memory_usage - start_memory_usage
+        writer = csv.writer(benchfile, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)  # create csv writer
+        writer.writerow(["iteration", "runtime (ms)", "CPU time (ms)", "memory (mb)", "nb_nodes", "nb_edges", "cost",
+                         "path"])  # write header
+
+    for i in range(perf_iterations):
+        # Start time and resource usage
+        start_time = time.time()
+        start_cpu_time = psutil.Process().cpu_times().user
+        start_memory_usage = psutil.Process().memory_info().rss / 1024 / 1024
+
+        # Run the ant colony optimization algorithm
+        if nb_trucks == 1:
+            best_path, best_cost = ant_colony(coordinates, distance_matrix, num_ants, alpha, beta, evaporation, nb_trucks)
+        else:
+            all_truck_paths, total_cost = ant_colony(coordinates, distance_matrix, num_ants, alpha, beta, evaporation,
+                                                     nb_trucks)
+        # End time and resource usage
+        end_cpu_time = psutil.Process().cpu_times().user
+        end_memory_usage = psutil.Process().memory_info().rss / 1024 / 1024
+        end_time = time.time()
+
+        # Calculate execution time and resource usage
+        execution_time = end_time - start_time
+        cpu_time = end_cpu_time - start_cpu_time
+        memory_usage = end_memory_usage - start_memory_usage
+
+        if perf_iterations > 1:
+            if nb_trucks == 1:
+                writer.writerow([i, execution_time * 1000, cpu_time * 1000, memory_usage, num_cities, num_cities ** 2,
+                                 best_cost, best_path])
+            else :
+                writer.writerow([i, execution_time * 1000, cpu_time * 1000, memory_usage, num_cities, num_cities ** 2,
+                             total_cost, all_truck_paths])
+
+
+
 
     # Print results
     if nb_trucks == 1:
@@ -337,5 +364,5 @@ def calculate_results():
             print("  Gas cost:", total_gas_cost, "€")
             print("  Human cost:", total_human_cost, "€")
             print()
-running()
+running(perf_iterations=1000)
 calculate_results()
