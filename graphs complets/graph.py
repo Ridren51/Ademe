@@ -212,7 +212,8 @@ class Graph:
         travel_time_cost = travel_time * job_cost_per_hour  # total job cost in €
         fuel_cost = consumption * fuel_cost_per_liter  # total fuel cost in €
 
-        return math.floor(travel_time_cost + fuel_cost)  # total cost in €
+        # return math.floor(travel_time_cost + fuel_cost)  # total cost in €
+        return distance
 
     def generate_random_graph(self, nodes: int=20, p:float=.5):
         """
@@ -286,7 +287,7 @@ class Graph:
         graph = nx.empty_graph()
         graph.add_nodes_from(self.nodes.keys())
 
-        layout = nx.kamada_kawai_layout(graph) # layout of the graph
+        layout = nx.random_layout(graph) # layout of the graph
 
         for edge in self.edges.values():
             graph.add_edge(edge.node1, edge.node2) # add edges to the graph
