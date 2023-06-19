@@ -187,6 +187,33 @@ class Graph:
         self.edges = {}
         self.adjacencyMatrix = []
 
+    def create_travel_cost(self, consumption_from_speed=None, job_cost_per_hour = 9, fuel_cost_per_liter = 1.5, distance = rd.randint(1, 100)):
+        # {speed in km/h: consumption in L/100km}
+        # job_cost_per_hour €/h
+        # fuel_cost_per_liter €/L
+        if consumption_from_speed is None:
+            consumption_from_speed = {
+                30: 55,
+                40: 48,
+                50: 44,
+                70: 33,
+                90: 38,
+                110: 44,
+                130: 51,
+            }
+
+
+        speed = rd.choice(list(consumption_from_speed.keys()))  # classic speeds limits in km/h
+        consumption_per_hundred_km = consumption_from_speed[speed]  # consumption in L/100km
+
+        travel_time = distance / speed  # travel time in hours
+        consumption = consumption_per_hundred_km * (distance / 100)  # consumption in L
+
+        travel_time_cost = travel_time * job_cost_per_hour  # total job cost in €
+        fuel_cost = consumption * fuel_cost_per_liter  # total fuel cost in €
+
+        return math.floor(travel_time_cost + fuel_cost)  # total cost in €
+
     def generate_random_graph(self, nodes: int=20, p:float=.5):
         """
         Generates random graph with nodes number and probability of having an edge
@@ -202,23 +229,9 @@ class Graph:
 
         start_time = time.time()
 
-        consumption_from_speed = {30: 55, 40: 48, 50: 44, 70: 33, 90: 38, 110: 44, 130: 51} # {speed in km/h: consumption in L/100km}
-        job_cost_per_hour = 9  # €/h
-        fuel_cost_per_liter = 1.5  # €/L
 
-        def create_travel_cost():
 
-            distance = rd.randint(1, 100)
-            speed = rd.choice(list(consumption_from_speed.keys()))  # classic speeds limits in km/h
-            consumption_per_hundred_km = consumption_from_speed[speed]  # consumption in L/100km
 
-            travel_time = distance / speed # travel time in hours
-            consumption = consumption_per_hundred_km * (distance / 100) # consumption in L
-
-            travel_time_cost = travel_time * job_cost_per_hour # total job cost in €
-            fuel_cost = consumption * fuel_cost_per_liter # total fuel cost in €
-
-            return math.floor(travel_time_cost + fuel_cost)  # total cost in €
 
         """
         Generates a random undirected graph, similarly to an Erdős-Rényi
@@ -230,18 +243,18 @@ class Graph:
         if p >= 1: # if p >= 1 then all nodes are connected
             for node_edges in edges:
                 node_edge=list(node_edges)
-                node_edge.append(create_travel_cost())
+                node_edge.append(self.create_travel_cost())
                 self.add_edge(str(node_edge[0]), str(node_edge[1]), node_edge[2])
 
         for node, node_edges in groupby(edges, key=lambda x: x[0]): # for each node and its edges
             node_edges = list(node_edges)
             choice = rd.choice(node_edges) # choose a random edge
-            self.add_edge(str(choice[0]), str(choice[1]), create_travel_cost()) # add edge to graph
+            self.add_edge(str(choice[0]), str(choice[1]), self.create_travel_cost()) # add edge to graph
 
             for e in node_edges:
                 if rd.random() < p: # randomize if edge is added to graph
                     if e[0] != e[1]: #if the same city then no distance nor speed
-                        self.add_edge(str(e[0]), str(e[1]), create_travel_cost()) # add edge to graph
+                        self.add_edge(str(e[0]), str(e[1]), self.create_travel_cost()) # add edge to graph
                     else:
                         self.add_edge(str(e[0]), str(e[1]), 0) # add edge to graph
 
