@@ -1,6 +1,7 @@
 import csv
 import datetime
 import os
+from tqdm import tqdm
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -15,10 +16,11 @@ from sklearn.cluster import KMeans
 temp_init = 10000
 cooling = 0.995
 temp_min = 0.0001
-nb_trucks = 3
+nb_trucks = 1
 reheat_threshold = 0.001
 reheat_value = 300
 max_reheat_count = 6
+perf_iterations=1
 
 # Chemin du fichier contenant la matrice de coûts
 cost_matrix_file_path = 'vendor/Coords/matrix.txt'
@@ -87,6 +89,8 @@ def simulated_annealing(cost_matrix, temp_init, cooling, temp_min, reheat_thresh
     temperature = temp_init
     nb_iterations = 0
     reheat_count = 0
+    pbar = tqdm(total=max_reheat_count, desc="Simulated Annealing - Reheating", position=0, leave=True,
+                bar_format="{desc}: {percentage:.2f}%")
 
     while temperature > temp_min:
         nb_iterations += 1
@@ -117,7 +121,7 @@ def simulated_annealing(cost_matrix, temp_init, cooling, temp_min, reheat_thresh
     total_distance = 0
     for i, sub_tour in enumerate(sub_tours):
         sub_tour_distance = distance(sub_tour, cities)
-        print("Tour {}: Length {}, Route: {}".format(i + 1, sub_tour_distance, sub_tour))
+        print("Tour {}: Route: {}".format(i + 1, sub_tour))
         total_distance += sub_tour_distance
 
     print("Total distance: {}".format(total_distance))
@@ -128,7 +132,6 @@ def simulated_annealing(cost_matrix, temp_init, cooling, temp_min, reheat_thresh
     with open('vendor/coords_rec/composite_road.txt', 'w') as file:
         for i, sub_tour in enumerate(sub_tours):
             sub_tour_distance = distance(sub_tour, cities)
-            print("Tour {}: Length {}, Route: {}".format(i + 1, sub_tour_distance, sub_tour))
             # Écriture du sous-tour
             for city_index in sub_tour:
                 file.write(str(city_index) + '\n')
@@ -140,6 +143,7 @@ def simulated_annealing(cost_matrix, temp_init, cooling, temp_min, reheat_thresh
     with open('vendor/coords_rec/road.txt', 'w') as file:
         for city_index in best_tour:
             file.write(str(city_index) + '\n')
+    pbar.close()
     return best_tour, best_distance
 
 
@@ -174,11 +178,6 @@ def calculate_results(best_tour):
         human_cost_lines = [line.strip().split() for line in human_cost_file]
         human_cost_matrix = [[float(human) for human in line] for line in human_cost_lines]
 
-    # Lire la matrice des distances
-    with open('vendor/Coords/distances.txt', 'r') as distances_file:
-        distance_lines = [line.strip().split() for line in distances_file]
-        distance_matrix = [[float(distance) for distance in line] for line in distance_lines]
-
     total_distance = 0
     total_time = 0
     total_gas = 0
@@ -189,11 +188,11 @@ def calculate_results(best_tour):
     for i in range(num_cities - 1):
         start_city = cities[i]
         end_city = cities[i + 1]
-        distance = distance_matrix[start_city][end_city]
-        time = time_matrix[start_city][end_city]
-        gas = gas_matrix[start_city][end_city]
-        gas_cost = gas_cost_matrix[start_city][end_city]
-        human_cost = human_cost_matrix[start_city][end_city]
+        distance = round(distance_matrix[start_city][end_city], 2)
+        time = round(time_matrix[start_city][end_city], 2)
+        gas = round(gas_matrix[start_city][end_city])
+        gas_cost = round(gas_cost_matrix[start_city][end_city], 2)
+        human_cost = round(human_cost_matrix[start_city][end_city])
         total_distance += distance
         total_time += time
         total_gas += gas
@@ -211,7 +210,7 @@ def calculate_results(best_tour):
 
 
 
-perf_iterations=100
+
 
 writer = None
 if perf_iterations > 1:

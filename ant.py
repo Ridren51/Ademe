@@ -10,12 +10,14 @@ from tqdm import tqdm
 from sklearn.cluster import KMeans
 from scipy.spatial import distance_matrix
 
-num_ants = 20
+num_ants = 10
 alpha = 1
 beta = 2
 evaporation = 0.5
 iterations = 100
-nb_trucks = 2
+nb_trucks = 1
+perf_iterations = 1
+
 
 def read_coordinates():
     coordinates = []
@@ -36,7 +38,10 @@ def read_distance_matrix(file_path):
             distances = [float(distance) for distance in line.strip().split()]
             distance_matrix.append(distances)
     return np.array(distance_matrix)
+
+
 distance_matrix = read_distance_matrix('vendor/Coords/distances.txt')
+
 
 def read_cost_matrix():
     cost_matrix = []
@@ -45,6 +50,7 @@ def read_cost_matrix():
             row = [float(value) if value != 'nan' else np.nan for value in line.strip().split()]
             cost_matrix.append(row)
     return np.array(cost_matrix)
+
 
 def choose_next_city(current_city, unvisited_cities, pheromone_matrix, distance_matrix, alpha, beta):
     probabilities = []
@@ -68,6 +74,8 @@ def choose_next_city(current_city, unvisited_cities, pheromone_matrix, distance_
     probabilities = [p / total for p in probabilities]
     next_city_index = np.random.choice(range(len(unvisited_cities)), p=probabilities)
     return unvisited_cities[next_city_index]
+
+
 def ant_colony(coordinates, distance_matrix, num_ants, alpha, beta, evaporation, nb_trucks):
     num_cities = len(coordinates)
 
@@ -110,26 +118,26 @@ def ant_colony(coordinates, distance_matrix, num_ants, alpha, beta, evaporation,
 
             for i in range(num_ants):
                 for j in range(num_cities):
-                    pheromone_matrix[paths[i][j]][paths[i][j+1]] += 1 / costs[i]
+                    pheromone_matrix[paths[i][j]][paths[i][j + 1]] += 1 / costs[i]
 
         return best_path, best_cost
     else:
-        # Cas pour plusieurs camions avec clustering
+        # Case for multiple trucks with clustering
         distance_matrix = read_distance_matrix('vendor/Coords/distances.txt')
 
-        # Création des clusters
+        # Create clusters
         clusters = [[] for _ in range(nb_trucks)]
         num_cities = len(coordinates)
 
-        assigned = set()  # Villes déjà assignées à un cluster
+        assigned = set()  # Cities already assigned to a cluster
 
         for i in range(num_cities):
             if i not in assigned:
-                nearest_city = np.argmin(distance_matrix[i])  # Indice de la ville la plus proche
-                cluster_id = len(assigned) % nb_trucks  # Identifiant du cluster
-                clusters[cluster_id].append(i)  # Ajouter la ville au cluster
-                assigned.add(i)  # Marquer la ville comme assignée
-                assigned.add(nearest_city)  # Marquer la ville la plus proche comme assignée
+                nearest_city = np.argmin(distance_matrix[i])  # Index of the nearest city
+                cluster_id = len(assigned) % nb_trucks  # Cluster identifier
+                clusters[cluster_id].append(i)  # Add the city to the cluster
+                assigned.add(i)  # Mark the city as assigned
+                assigned.add(nearest_city)  # Mark the nearest city as assigned
 
         # Storing paths for all trucks
         all_truck_paths = []
@@ -150,101 +158,7 @@ def ant_colony(coordinates, distance_matrix, num_ants, alpha, beta, evaporation,
 
         # Return all the paths and the total cost
         return all_truck_paths, total_cost
-def running(perf_iterations:int=1):
-    # Plot the CPU usage graph
-    cpu_percentages = []
-    memory_usages = []
-    timestamps = []
 
-    # Read coordinates and distance matrix
-    coordinates = read_coordinates()
-    distance_matrix = read_cost_matrix()
-    num_cities = len(coordinates)
-
-    writer = None
-
-    if perf_iterations > 1:
-        filename = 'vendor/benchmarks/ant_complete/'
-        os.makedirs(os.path.dirname(filename), exist_ok=True)  # create folder if it doesn't exist
-        benchfile = open(f"{filename}/{datetime.datetime.now().strftime('%d-%m-%Y_%H-%M-%S')}.csv", mode='w',newline='')# open file
-
-        writer = csv.writer(benchfile, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)  # create csv writer
-        writer.writerow(["iteration", "runtime (ms)", "CPU time (ms)", "memory (mb)", "nb_nodes", "nb_edges", "cost",
-                         "path"])  # write header
-
-    for i in range(perf_iterations):
-        # Start time and resource usage
-        start_time = time.time()
-        start_cpu_time = psutil.Process().cpu_times().user
-        start_memory_usage = psutil.Process().memory_info().rss / 1024 / 1024
-
-        # Run the ant colony optimization algorithm
-        if nb_trucks == 1:
-            best_path, best_cost = ant_colony(coordinates, distance_matrix, num_ants, alpha, beta, evaporation, nb_trucks)
-        else:
-            all_truck_paths, total_cost = ant_colony(coordinates, distance_matrix, num_ants, alpha, beta, evaporation,
-                                                     nb_trucks)
-        # End time and resource usage
-        end_cpu_time = psutil.Process().cpu_times().user
-        end_memory_usage = psutil.Process().memory_info().rss / 1024 / 1024
-        end_time = time.time()
-
-        # Calculate execution time and resource usage
-        execution_time = end_time - start_time
-        cpu_time = end_cpu_time - start_cpu_time
-        memory_usage = end_memory_usage - start_memory_usage
-
-        if perf_iterations > 1:
-            if nb_trucks == 1:
-                writer.writerow([i, execution_time * 1000, cpu_time * 1000, memory_usage, num_cities, num_cities ** 2,
-                                 best_cost, best_path])
-            else :
-                writer.writerow([i, execution_time * 1000, cpu_time * 1000, memory_usage, num_cities, num_cities ** 2,
-                             total_cost, all_truck_paths])
-
-
-
-
-    # Print results
-    if nb_trucks == 1:
-        print("Best path:", best_path)
-        print("Best cost:", best_cost)
-        np.savetxt('vendor/Coords_ant/road.txt', best_path, fmt='%.0f')
-    else:
-        print("Best paths:", all_truck_paths)
-        print("Total cost:", total_cost)
-        with open('vendor/Coords_ant/composite_road.txt', 'w') as file:
-            for i, truck_path in enumerate(all_truck_paths):
-                for city in truck_path:
-                    file.write(str(city) + '\n')
-                if i < len(all_truck_paths) - 1:
-                    file.write('-----' + '\n')
-    print("Execution time:", execution_time, "seconds")
-    print("CPU time:", cpu_time, "seconds")
-    print("Memory usage:", memory_usage, "MB")
-
-
-    # Plot CPU and memory usage in real-time
-    for i in range(int(execution_time) + 1):
-        cpu_percentages.append(psutil.cpu_percent())
-        memory_usages.append(psutil.Process().memory_info().rss / 1024 / 1024)
-        timestamps.append(i)
-
-        # Plot CPU usage graph
-        plt.subplot(211)
-        plt.plot(timestamps, cpu_percentages, color='blue')
-        plt.xlabel('Time (seconds)')
-        plt.ylabel('CPU Usage (%)')
-        plt.title('CPU Usage')
-
-        # Plot memory usage graph
-        plt.subplot(212)
-        plt.plot(timestamps, memory_usages, color='red')
-        plt.xlabel('Time (seconds)')
-        plt.ylabel('Memory Usage (MB)')
-        plt.title('Memory Usage')
-        plt.draw()
-    plt.show()
 
 def calculate_results():
     # Path of the file containing the list of cities
@@ -317,21 +231,21 @@ def calculate_results():
         print("Gas cost:", total_gas_cost, "€")
         print("Human cost:", total_human_cost, "€")
     else:
-        # Cas pour plusieurs camions
+        # Case for multiple trucks
         with open(composite_cities_file_path, 'r') as composite_cities_file:
             lines = composite_cities_file.readlines()
-            truck_paths = []  # Liste pour stocker les chemins de chaque camion
-            current_path = []  # Liste temporaire pour stocker le chemin courant
+            truck_paths = []  # List to store the paths of each truck
+            current_path = []  # Temporary list to store the current path
             for line in lines:
                 if line.strip() != '-----':
                     current_path.append(int(line.strip()))
                 else:
                     truck_paths.append(current_path)
                     current_path = []
-            if current_path:  # Ajouter le dernier chemin s'il n'est pas vide
+            if current_path:  # Add the last path if it's not empty
                 truck_paths.append(current_path)
 
-        # Calculer la distance totale du circuit pour chaque camion
+        # Calculate the total distance of the circuit for each truck
         for truck_index, cities in enumerate(truck_paths):
             total_distance = 0
             total_time = 0
@@ -353,9 +267,9 @@ def calculate_results():
                 total_gas_cost += gas_cost
                 total_human_cost += human_cost
 
-            hours = int(total_time)  # Partie entière des heures
-            difference = total_time - hours  # Différence entre l'approximation et la partie entière
-            minutes = int(difference * 60)  # Conversion de la différence en minutes
+            hours = int(total_time)  # Integer part of hours
+            difference = total_time - hours  # Difference between the approximation and the integer part
+            minutes = int(difference * 60)  # Conversion of the difference to minutes
 
             print(f"Truck {truck_index + 1}:")
             print("  Distance:", total_distance, "km")
@@ -364,5 +278,106 @@ def calculate_results():
             print("  Gas cost:", total_gas_cost, "€")
             print("  Human cost:", total_human_cost, "€")
             print()
-running(perf_iterations=1000)
+    return total_distance, total_time, total_gas, total_gas_cost, total_human_cost
+
+def running(perf_iterations: int = 1):
+    # Plot the CPU usage graph
+    cpu_percentages = []
+    memory_usages = []
+    timestamps = []
+
+    # Read coordinates and distance matrix
+    coordinates = read_coordinates()
+    distance_matrix = read_cost_matrix()
+    num_cities = len(coordinates)
+
+    writer = None
+
+    if perf_iterations > 1:
+        filename = 'vendor/benchmarks/ant_complete/'
+        os.makedirs(os.path.dirname(filename), exist_ok=True)  # create folder if it doesn't exist
+        benchfile = open(f"{filename}/{datetime.datetime.now().strftime('%d-%m-%Y_%H-%M-%S')}.csv", mode='w',
+                         newline='')  # open file
+
+        writer = csv.writer(benchfile, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)  # create csv writer
+        writer.writerow(
+            ["iteration", "runtime (ms)", "CPU time (ms)", "memory (mb)", "nb_nodes", "nb_edges", "cost",
+             "path", "nb_ants", "alpha", "beta", "evap", "nb_iter", "total_dist"])  # write header
+
+    for i in range(perf_iterations):
+        # Start time and resource usage
+        start_time = time.time()
+        start_cpu_time = psutil.Process().cpu_times().user
+        start_memory_usage = psutil.Process().memory_info().rss / 1024 / 1024
+
+        # Run the ant colony optimization algorithm
+        if nb_trucks == 1:
+            best_path, best_cost = ant_colony(coordinates, distance_matrix, num_ants, alpha, beta, evaporation,
+                                               nb_trucks)
+        else:
+            all_truck_paths, total_cost = ant_colony(coordinates, distance_matrix, num_ants, alpha, beta, evaporation,
+                                                     nb_trucks)
+        # End time and resource usage
+        end_cpu_time = psutil.Process().cpu_times().user
+        end_memory_usage = psutil.Process().memory_info().rss / 1024 / 1024
+        end_time = time.time()
+
+        # Calculate execution time and resource usage
+        execution_time = end_time - start_time
+        cpu_time = end_cpu_time - start_cpu_time
+        memory_usage = end_memory_usage - start_memory_usage
+
+        if perf_iterations > 1:
+            if nb_trucks == 1:
+                writer.writerow([i, execution_time * 1000, cpu_time * 1000, memory_usage, num_cities, num_cities ** 2,
+                                 best_cost, best_path, num_ants, alpha, beta, evaporation, iterations])
+            else:
+                writer.writerow([i, execution_time * 1000, cpu_time * 1000, memory_usage, num_cities, num_cities ** 2,
+                                 total_cost, all_truck_paths, num_ants, alpha, beta, evaporation, iterations])
+
+    # Print results
+    if nb_trucks == 1:
+        print("Best path:", best_path)
+        print("Best cost:", best_cost)
+        np.savetxt('vendor/Coords_ant/road.txt', best_path, fmt='%.0f')
+    else:
+        print("Best paths:", all_truck_paths)
+        print("Total cost:", total_cost)
+        with open('vendor/Coords_ant/composite_road.txt', 'w') as file:
+            for i, truck_path in enumerate(all_truck_paths):
+                for city in truck_path:
+                    file.write(str(city) + '\n')
+                if i < len(all_truck_paths) - 1:
+                    file.write('-----' + '\n')
+    print("Execution time:", execution_time, "seconds")
+    print("CPU time:", cpu_time, "seconds")
+    print("Memory usage:", memory_usage, "MB")
+
+    # Plot CPU and memory usage in real-time
+    for i in range(int(execution_time) + 1):
+        cpu_percentages.append(psutil.cpu_percent())
+        memory_usages.append(psutil.Process().memory_info().rss / 1024 / 1024)
+        timestamps.append(i)
+
+        # Plot CPU usage graph
+        plt.subplot(211)
+        plt.plot(timestamps, cpu_percentages, color='blue')
+        plt.xlabel('Time (seconds)')
+        plt.ylabel('CPU Usage (%)')
+        plt.title('CPU Usage')
+
+        # Plot memory usage graph
+        plt.subplot(212)
+        plt.plot(timestamps, memory_usages, color='red')
+        plt.xlabel('Time (seconds)')
+        plt.ylabel('Memory Usage (MB)')
+        plt.title('Memory Usage')
+        plt.draw()
+    plt.show()
+
+
+
+
+
+running(perf_iterations)
 calculate_results()
