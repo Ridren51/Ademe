@@ -3,7 +3,7 @@ from graph import Graph
 import numpy as np
 
 
-def aco(graph:Graph, start_node, num_ants:int = 10, alpha:int = 1, beta:int = 2, evaporation:float = 0.5, already_visited_penalty:float = 0.5, iterations:int = 10):
+def aco(graph:Graph, start_node, num_ants:int = 10, alpha:int = 1, beta:int = 2, evaporation:float = 0.5, already_visited_penalty:float = 0.5, iterations:int = 10, max_iterations_without_improvement=None):
     """
     heuristic aco algorithm for finding the shortest path in a graph
     :param graph: graph to use
@@ -21,7 +21,8 @@ def aco(graph:Graph, start_node, num_ants:int = 10, alpha:int = 1, beta:int = 2,
     start_node = str(start_node)
     start_time = time.time()
 
-    max_iterations_without_improvement = len(graph.nodes)*2 #max number of iterations without improvement before stopping
+    if max_iterations_without_improvement is None:
+        max_iterations_without_improvement = len(graph.nodes)*2 #max number of iterations without improvement before stopping
     for _ in range(iterations): # Run ant colony optimization for a fixed number of iterations
         print("iteration", _)
         paths = []
