@@ -4,9 +4,11 @@ from collections import defaultdict
 from graph import Graph
 
 
-def genetic(graph, nb_generations, nb_solutions, nb_kept_solutions, mutation_rate, start_node):
+def genetic(nb_generations, nb_solutions, nb_kept_solutions, mutation_rate, start_node,graph=None):
     # graph.node_and_edges_from_adjacency_matrix([[0, 0, 0, 0, 0, 0, 247, 0, 375, 0], [0, 0, 0, 4, 0, 0, 140, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 323, 457], [0, 4, 0, 0, 0, 0, 0, 287, 0, 0], [0, 0, 0, 0, 0, 0, 334, 0, 0, 116], [0, 0, 0, 0, 0, 0, 552, 0, 0, 485], [247, 140, 0, 0, 334, 552, 0, 0, 0, 0], [0, 0, 0, 287, 0, 0, 0, 0, 373, 0], [375, 0, 323, 0, 0, 0, 0, 373, 0, 0], [0, 0, 457, 0, 116, 485, 0, 0, 0, 0]])
-    graph.generate_random_graph(100)
+    if graph is None:
+        graph = Graph()
+        graph.generate_random_graph(100)
     # graph.plot_graph()
 
     generation = []
