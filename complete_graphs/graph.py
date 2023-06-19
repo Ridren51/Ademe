@@ -187,10 +187,14 @@ class Graph:
         self.edges = {}
         self.adjacencyMatrix = []
 
-    def create_travel_cost(self, consumption_from_speed=None, job_cost_per_hour = 9, fuel_cost_per_liter = 1.5, distance = rd.randint(1, 100)):
+    def create_travel_cost(self, consumption_from_speed=None, job_cost_per_hour = 9, fuel_cost_per_liter = 1.5, distance = None):
         # {speed in km/h: consumption in L/100km}
         # job_cost_per_hour €/h
         # fuel_cost_per_liter €/L
+
+        if distance is None:
+            distance = rd.randint(1, 100)
+
         if consumption_from_speed is None:
             consumption_from_speed = {
                 30: 55,
@@ -326,7 +330,7 @@ class Graph:
                     self.add_edge(str(i), str(j), weight)
 
 
-    def graph_from_file(self, file: str):
+    def graph_from_coords_file(self, file: str):
         """
         Generate graph from file
         :param file: file path
@@ -347,6 +351,18 @@ class Graph:
                         weight = self.create_travel_cost(distance=((int(x2) - int(x1)) ** 2 + (int(y2) - int(y1)) ** 2) ** 0.5)
                         self.add_edge(str(i), str(j), weight)
 
+    def graph_from_matrix_file(self, file: str):
+        """
+        Generate graph from file
+        :param file: file path
+        :return: None
+        """
+        self.clear()
+
+        with open(file, "r") as f:
+            matrix = f.readlines()
+
+            self.node_and_edges_from_adjacency_matrix([[float(i) for i in line.split(" ")] for line in matrix])
 
 
     def print_graph(self):
