@@ -1,4 +1,3 @@
-import math
 import time
 import random as rd
 from itertools import combinations, groupby
@@ -300,10 +299,6 @@ class Graph:
 
         for edge in self.edges.values():
             graph.add_edge(edge.node1, edge.node2) # add edges to the graph
-
-        if len(self.nodes)<=10:
-            edge_labels = dict([((edge.node1, edge.node2), f'{edge.weight}') for edge in self.edges.values()]) # add edge labels
-            nx.draw_networkx_edge_labels(graph, pos=layout, edge_labels=edge_labels)
 
         fig_size = len(self.nodes)/15 if (len(self.nodes)>100) else 10
         nodes_size = 1000 if (len(self.nodes)>100) else 500
