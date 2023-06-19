@@ -188,9 +188,14 @@ class Graph:
         self.adjacencyMatrix = []
 
     def create_travel_cost(self, consumption_from_speed=None, job_cost_per_hour = 9, fuel_cost_per_liter = 1.5, distance = None):
-        # {speed in km/h: consumption in L/100km}
-        # job_cost_per_hour €/h
-        # fuel_cost_per_liter €/L
+        """
+        Returns the cost of a travel in €
+        :param consumption_from_speed: {speed in km/h: consumption in L/100km}
+        :param job_cost_per_hour: job_cost_per_hour €/h
+        :param fuel_cost_per_liter: fuel_cost_per_liter €/L
+        :param distance: distance in km
+        :return: cost in €
+        """
 
         if distance is None:
             distance = rd.randint(1, 100)
