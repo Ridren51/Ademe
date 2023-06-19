@@ -21,7 +21,7 @@ reheat_value = 300
 max_reheat_count = 6
 
 # Chemin du fichier contenant la matrice de coûts
-cost_matrix_file_path = 'vendor/coords/matrix.txt'
+cost_matrix_file_path = 'vendor/Coords/matrix.txt'
 
 
 def read_coordinates():
@@ -175,7 +175,7 @@ def calculate_results(best_tour):
         human_cost_matrix = [[float(human) for human in line] for line in human_cost_lines]
 
     # Lire la matrice des distances
-    with open('vendor/coords/distances.txt', 'r') as distances_file:
+    with open('vendor/Coords/distances.txt', 'r') as distances_file:
         distance_lines = [line.strip().split() for line in distances_file]
         distance_matrix = [[float(distance) for distance in line] for line in distance_lines]
 
