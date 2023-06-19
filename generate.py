@@ -4,19 +4,31 @@ import copy
 import matplotlib.pyplot as plt
 
 def generate(X= 100, Y= 100, n= 50, price= 1.700,human_cost = 0,ecological_cost = 1,timecost = 1):
+    """
+    generate the coordinates, distances, speeds and consumptions
+    :param X: x size of the map
+    :param Y: y size of the map
+    :param n: number of nodes
+    :param price: euro per liter
+    :param human_cost: enable consideration of human cost
+    :param ecological_cost: enable consideration of ecological cost
+    :param timecost: cost of the time in €/h
+    :return global matrix
+    """
+
     # EXECUTION SECTION
     coordinates = []
     distances = []
     speeds = []
 
     # COORDINATES GENERATION SECTION
-    f = open("vendor/coords/list.txt", "w")
+    f = open("vendor/Coords/list.txt", "w")
     for i in range(1, n+1):
         f.write(str(i) + " " + str(random.randint(1, X)) + " " + str(random.randint(1, Y)) + "\n")
     f.close()
 
     # COORDINATES SELECTION SECTION
-    f = open("vendor/coords/list.txt", "r")
+    f = open("vendor/Coords/list.txt", "r")
     lines = f.readlines()
     f.close()
     for line in lines:
@@ -34,7 +46,7 @@ def generate(X= 100, Y= 100, n= 50, price= 1.700,human_cost = 0,ecological_cost 
             distance = ((x2 - x1) ** 2 + (y2 - y1) ** 2) ** 0.5
             row.append(distance)
         distances.append(row)
-    np.savetxt('vendor/coords/distances.txt', distances, fmt='%.2f')
+    np.savetxt('vendor/Coords/distances.txt', distances, fmt='%.2f')
 
     # SPEEDS GENERATION SECTION
     for i in range(n):
@@ -48,7 +60,7 @@ def generate(X= 100, Y= 100, n= 50, price= 1.700,human_cost = 0,ecological_cost 
         speeds.append(row)
 
     speeds = np.nan_to_num(speeds, nan=0)
-    np.savetxt('vendor/coords/speeds.txt', speeds, fmt='%.2f')
+    np.savetxt('vendor/Coords/speeds.txt', speeds, fmt='%.2f')
 
     # CONSUMPTION GENERATION SECTION
     consumptions = [[0 for _ in range(len(speeds[i]))] for i in range(len(speeds))]
@@ -73,29 +85,29 @@ def generate(X= 100, Y= 100, n= 50, price= 1.700,human_cost = 0,ecological_cost 
 
     consumptions = np.divide(consumptions, 100)
     consumptions = np.nan_to_num(consumptions, nan=0)
-    np.savetxt('vendor/coords/consumptions.txt', consumptions, fmt='%.2f')
+    np.savetxt('vendor/Coords/consumptions.txt', consumptions, fmt='%.2f')
 
     # TIME GENERATION SECTION
     d = np.array(distances)  # Distance Matrice
     v = np.array(speeds)  # Speeds Matrice
     times = np.divide(d, np.nan_to_num(v))  # Time = Distance / Speeds
     times = np.nan_to_num(times, nan=0)
-    np.savetxt('vendor/coords/times.txt', times, fmt='%.2f')
+    np.savetxt('vendor/Coords/times.txt', times, fmt='%.2f')
 
     # COST GENERATION SECTION
     cost = np.multiply(times, 9)  # Time in hours
     cost = np.nan_to_num(cost, nan=0)
-    np.savetxt('vendor/coords/human_cost.txt', cost, fmt='%.2f')
+    np.savetxt('vendor/Coords/human_cost.txt', cost, fmt='%.2f')
 
     # GASOLINE GENERATION SECTION
     gasoline = np.multiply(distances, consumptions)  # Gasoline = Distance * Consumption
     gasoline = np.nan_to_num(gasoline, nan=0)
-    np.savetxt('vendor/coords/gas.txt', gasoline, fmt='%.2f')
+    np.savetxt('vendor/Coords/gas.txt', gasoline, fmt='%.2f')
 
     # GASOLINE COST GENERATION SECTION
     gas_cost = np.multiply(gasoline, price)  # Gasoline Cost = Gasoline * Price
     gas_cost = np.nan_to_num(gas_cost, nan=0)
-    np.savetxt('vendor/coords/gas_cost.txt', gas_cost, fmt='%.2f')
+    np.savetxt('vendor/Coords/gas_cost.txt', gas_cost, fmt='%.2f')
 
     # GLOBAL COST GENERATION SECTION
     HC = np.multiply(cost, human_cost)  # Cost = Time * Human Cost
@@ -125,11 +137,9 @@ def generate(X= 100, Y= 100, n= 50, price= 1.700,human_cost = 0,ecological_cost 
     global_cost = np.nan_to_num(global_cost, nan=0)
     if np.all(global_cost == 0):
         print("Erreur : Tous les coûts sont nuls")
-    np.savetxt('vendor/coords/matrix.txt', global_cost, fmt='%.2f')
+    np.savetxt('vendor/Coords/matrix.txt', global_cost, fmt='%.2f')
     # PRINT SECTION
 
-    # print("Matrice de cout globale:")
-    # for row in global_cost:
-    #    print(row)
+    return global_cost
 
 generate(X=100, Y=100, n=10)
