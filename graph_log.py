@@ -34,7 +34,6 @@ for filename in os.listdir(dossier):
             continue
 
         # Extraire et stocker les données requises
-        # Extraire et stocker les données requises
         if 'nb_nodes' in data.columns:
             nb_nodes.extend(data['nb_nodes'])
 
@@ -50,14 +49,14 @@ for filename in os.listdir(dossier):
         if 'beta' in data.columns:
             beta.extend(data['beta'])
 
-        if 'evaporation' in data.columns:
-            evaporation.extend(data['evaporation'])
+        if 'evap' in data.columns:
+            evaporation.extend(data['evap'])
 
-        if 'nb_iterations' in data.columns:
-            nb_iterations.extend(data['nb_iterations'])
+        if 'nb_iter' in data.columns:
+            nb_iterations.extend(data['nb_iter'])
 
-        if 'best_cost' in data.columns:
-            best_costs.extend(data['best_cost'])
+        if 'cost' in data.columns:
+            best_costs.extend(data['cost'])
 
 # Graphique 1 : Temps d'exécution vs Nombre de nœuds
 plt.figure(figsize=(10, 5))
