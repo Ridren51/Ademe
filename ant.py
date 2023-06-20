@@ -12,12 +12,11 @@ from scipy.spatial import distance_matrix
 
 num_ants = 10
 alpha = 1
-beta = 2
+beta = 4
 evaporation = 0.5
 iterations = 100
 nb_trucks = 1
 perf_iterations = 1
-
 
 def read_coordinates():
     coordinates = []

@@ -115,6 +115,7 @@ def simulated_annealing(cost_matrix, temp_init, cooling, temp_min, reheat_thresh
         if temperature < reheat_threshold and reheat_count < max_reheat_count:
             temperature += reheat_value
             reheat_count += 1
+            pbar.update(1)
 
     sub_tours = split_tour(best_tour, nb_trucks, cities)
 

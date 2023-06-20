@@ -3,7 +3,7 @@ import random
 import copy
 import matplotlib.pyplot as plt
 
-def generate(X= 100, Y= 100, n= 50, price= 1.700,human_cost = 0,ecological_cost = 0,timecost = 1,dataset = 0,
+def generate(X= 100, Y= 100, n= 100, price= 1.700,human_cost = 0,ecological_cost = 0,timecost = 1,dataset = 0,
              circulation = 1):
     """
     generate the coordinates, distances, speeds and consumptions
@@ -15,7 +15,7 @@ def generate(X= 100, Y= 100, n= 50, price= 1.700,human_cost = 0,ecological_cost 
     :param ecological_cost: enable consideration of ecological cost
     :param timecost: cost of the time in €/h
     :return global matrix
-    :param cost : enable to simulate traffic
+    :param circulation : enable to simulate traffic
     """
 
 
