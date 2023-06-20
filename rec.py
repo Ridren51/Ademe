@@ -12,18 +12,7 @@ import math
 import psutil
 from sklearn.cluster import KMeans
 
-# Paramètres de contrôle
-temp_init = 10000
-cooling = 0.995
-temp_min = 0.0001
-nb_trucks = 1
-reheat_threshold = 0.001
-reheat_value = 300
-max_reheat_count = 6
-perf_iterations=1
 
-# Chemin du fichier contenant la matrice de coûts
-cost_matrix_file_path = 'vendor/Coords/matrix.txt'
 
 
 def read_coordinates():
@@ -209,45 +198,65 @@ def calculate_results(best_tour):
     print("Gas cost:", total_gas_cost, "€")
     print("Human cost:", total_human_cost, "€")
 
-
-
-
-
-writer = None
-if perf_iterations > 1:
-    filename = 'vendor/benchmarks/rec_complete/'
-    os.makedirs(os.path.dirname(filename), exist_ok=True)  # create folder if it doesn't exist
-    benchfile = open(f"{filename}/{datetime.datetime.now().strftime('%d-%m-%Y_%H-%M-%S')}.csv", mode='w',newline='')# open file
-
-    writer = csv.writer(benchfile, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)  # create csv writer
-    writer.writerow(["iteration", "runtime (ms)", "CPU time (ms)", "memory (mb)", "nb_nodes", "nb_edges", "cost",
-                     "path"])  # write header
-
-for i in range(perf_iterations):
-    # Start time and resource usage
-    start_time = time.time()
-    start_cpu_time = psutil.Process().cpu_times().user
-    start_memory_usage = psutil.Process().memory_info().rss / 1024 / 1024
-
-    # Lancement de l'algorithme de recuit simulé
-    best_tour, best_distance = simulated_annealing(
-        read_cost_matrix(cost_matrix_file_path), temp_init, cooling, temp_min, reheat_threshold, reheat_value,
-        max_reheat_count)
-
-    # End time and resource usage
-    end_cpu_time = psutil.Process().cpu_times().user
-    end_memory_usage = psutil.Process().memory_info().rss / 1024 / 1024
-    end_time = time.time()
-
-    # Calculate execution time and resource usage
-    execution_time = end_time - start_time
-    cpu_time = end_cpu_time - start_cpu_time
-    memory_usage = end_memory_usage - start_memory_usage
-
-    num_cities = len(best_tour)
-
+def running(temp_init = 10000,
+cooling = 0.995,
+temp_min = 0.0001,
+nb_trucks = 1,
+reheat_threshold = 0.001,
+reheat_value = 300,
+max_reheat_count = 6,
+perf_iterations=1):
+    writer = None
     if perf_iterations > 1:
-        writer.writerow([i, execution_time * 1000, cpu_time * 1000, memory_usage, num_cities, num_cities ** 2, best_distance, best_tour])
+        filename = 'vendor/benchmarks/rec_complete/'
+        os.makedirs(os.path.dirname(filename), exist_ok=True)  # create folder if it doesn't exist
+        benchfile = open(f"{filename}/{datetime.datetime.now().strftime('%d-%m-%Y_%H-%M-%S')}.csv", mode='w',newline='')# open file
 
-# Calcul et affichage des résultats
-calculate_results(best_tour)
+        writer = csv.writer(benchfile, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)  # create csv writer
+        writer.writerow(["iteration", "runtime (ms)", "CPU time (ms)", "memory (mb)", "nb_nodes", "nb_edges", "cost",
+                         "path"])  # write header
+
+    for i in range(perf_iterations):
+        # Start time and resource usage
+        start_time = time.time()
+        start_cpu_time = psutil.Process().cpu_times().user
+        start_memory_usage = psutil.Process().memory_info().rss / 1024 / 1024
+
+        # Lancement de l'algorithme de recuit simulé
+        best_tour, best_distance = simulated_annealing(
+            read_cost_matrix(cost_matrix_file_path), temp_init, cooling, temp_min, reheat_threshold, reheat_value,
+            max_reheat_count)
+
+        # End time and resource usage
+        end_cpu_time = psutil.Process().cpu_times().user
+        end_memory_usage = psutil.Process().memory_info().rss / 1024 / 1024
+        end_time = time.time()
+
+        # Calculate execution time and resource usage
+        execution_time = end_time - start_time
+        cpu_time = end_cpu_time - start_cpu_time
+        memory_usage = end_memory_usage - start_memory_usage
+
+        num_cities = len(best_tour)
+
+        if perf_iterations > 1:
+            writer.writerow([i, execution_time * 1000, cpu_time * 1000, memory_usage, num_cities, num_cities ** 2, best_distance, best_tour])
+
+    # Calcul et affichage des résultats
+    calculate_results(best_tour)
+
+
+# Paramètres de contrôle
+temp_init = 10000
+cooling = 0.995
+temp_min = 0.0001
+nb_trucks = 1
+reheat_threshold = 0.001
+reheat_value = 300
+max_reheat_count = 6
+perf_iterations=1
+
+# Chemin du fichier contenant la matrice de coûts
+cost_matrix_file_path = 'vendor/Coords/matrix.txt'
+
+running(temp_init, cooling, temp_min, nb_trucks, reheat_threshold, reheat_value, max_reheat_count, perf_iterations)
