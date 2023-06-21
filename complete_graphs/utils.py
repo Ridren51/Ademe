@@ -199,7 +199,12 @@ class Utils:
                 # replace strings by 0
 
                 for i, value in enumerate(df['cost'].values):
-                    if value.isdigit():
+                    if type(value) == str:
+                        if value.isdigit():
+                            cost[2].append(float(value))
+                            cost[0].append(value1[i])
+                            cost[1].append(value2[i])
+                    else:
                         cost[2].append(float(value))
                         cost[0].append(value1[i])
                         cost[1].append(value2[i])
@@ -213,7 +218,12 @@ class Utils:
             # replace strings by 0
 
             for i, value in enumerate(df['cost'].values):
-                if value.isdigit():
+                if type(value) == str:
+                    if value.isdigit():
+                        cost[2].append(float(value))
+                        cost[0].append(value1[i])
+                        cost[1].append(value2[i])
+                else:
                     cost[2].append(float(value))
                     cost[0].append(value1[i])
                     cost[1].append(value2[i])
@@ -261,8 +271,8 @@ class Utils:
                             y.append(float(v))
                             x.append(xs[i])
                     else:
-                        x.append(v)
-                        y.append(xs[i])
+                        y.append(v)
+                        x.append(xs[i])
 
         else:
             file_path = os.path.join(folder, filename)
@@ -278,9 +288,9 @@ class Utils:
                     if v.isdigit():
                         y.append(float(v))
                         x.append(xs[i])
-                else:
-                    x.append(v)
-                    y.append(xs[i])
+                    else:
+                        y.append(v)
+                        x.append(xs[i])
 
         plt.figure(figsize=(10, 10))
         plt.scatter(x, y)
