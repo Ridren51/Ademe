@@ -4,6 +4,8 @@ import time
 import psutil
 import datetime
 from aco import aco
+from genetic import genetic
+
 
 class Utils:
     def instance_starter(self, instance:object=None, instance_size=-1):
@@ -159,3 +161,58 @@ class Utils:
                                  end_memory_usage - start_memory_usage, len(grapher.nodes), len(grapher.edges), func_params, result[0],
                                  result[1]])
         benchfile.close()
+
+    def genetic_parameters_test(self, parameters:dict, iterations:int=20, instance_size:int=-1, instance: object = None):
+        """
+        method to test the parameters of the genetic algorithm and output the results to a csv file
+        :param parameters: dictionary of parameters to test with min and max values ex: {"param1": [min, max], "param2": [min, max]}
+        :param iterations: number of iterations to run the test
+        :param instance_size: number of nodes in the graph
+        :param instance: adjacency matrix of the graph
+        :return None
+        """
+        import os
+        import csv
+
+
+        print("Running parameters test for genetic with ", iterations, " iterations and ",
+              instance_size, " nodes")
+
+        grapher = self.instance_starter(instance=instance, instance_size=instance_size) #create graph instance
+
+        filename = '../vendor/benchmarks/param_test/'
+        os.makedirs(os.path.dirname(filename), exist_ok=True) #create folder if it doesn't exist
+
+
+
+        with open(f"{filename}genetic_{datetime.datetime.now().strftime('%d-%m-%Y_%H-%M-%S')}.csv", mode='w', newline='') as benchfile: #open file
+            writer = csv.writer(benchfile, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL) #create csv writer
+            writer.writerow(["iteration", "runtime (ms)", "CPU time (ms)", "memory (mb)", "nb_nodes", "nb_edges", "parameters", "cost", "path"]) #write header
+
+            for iteration in range(iterations):
+                start_time = time.time()
+                start_cpu_time = psutil.Process().cpu_times().user  # Measure CPU time before running the algorithm
+                start_memory_usage = psutil.Process().memory_info().rss / 1024 / 1024  # Convert to megabytes
+
+                #create random parameters in the range specified
+                func_params = {'nb_generations': parameters['nb_generations'],'nb_solutions': parameters['nb_solutions'],'nb_kept_solutions':parameters['nb_kept_solutions'], 'mutation_rate': rd.uniform(parameters['mutation_rate'][0],parameters['mutation_rate'][1]), 'cross_over_rate': rd.uniform(parameters['cross_over_rate'][0],parameters['cross_over_rate'][1])}
+                print(func_params)
+
+                try:
+                    print('try')
+                    result = genetic(start_node='0',graph=grapher, **func_params) #run the algorithm
+                except Exception as e:
+                    print('except', e)
+                    result = ["error", []]
+
+                end_cpu_time = psutil.Process().cpu_times().user  # Measure CPU time after running the algorithm
+                end_memory_usage = psutil.Process().memory_info().rss / 1024 / 1024  # Convert to megabytes
+                end_time = time.time()
+
+                #write results to csv
+                writer.writerow([iteration, (end_time - start_time) * 1000, (end_cpu_time - start_cpu_time) * 1000,
+                                 end_memory_usage - start_memory_usage, len(grapher.nodes), len(grapher.edges), func_params, result[0],
+                                 result[1]])
+        benchfile.close()
+
+
