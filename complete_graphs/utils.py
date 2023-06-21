@@ -3,6 +3,7 @@ import random as rd
 import time
 import psutil
 import datetime
+import os
 from aco import aco
 
 class Utils:
@@ -143,7 +144,7 @@ class Utils:
                 start_memory_usage = psutil.Process().memory_info().rss / 1024 / 1024  # Convert to megabytes
 
                 #create random parameters in the range specified
-                func_params = {'num_ants': rd.randint(parameters['num_ants'][0],parameters['num_ants'][1]), 'alpha': rd.randint(parameters['alpha'][0],parameters['alpha'][1]), 'beta': rd.randint(parameters['beta'][0],parameters['beta'][1]), 'evaporation': rd.uniform(parameters['evaporation'][0],parameters['evaporation'][1]), 'already_visited_penalty': rd.uniform(parameters['already_visited_penalty'][0],parameters['already_visited_penalty'][1])}
+                func_params = {'alpha': rd.randint(parameters['alpha'][0],parameters['alpha'][1]), 'beta': rd.randint(parameters['beta'][0],parameters['beta'][1]), 'evaporation': rd.uniform(parameters['evaporation'][0],parameters['evaporation'][1]), 'already_visited_penalty': rd.uniform(parameters['already_visited_penalty'][0],parameters['already_visited_penalty'][1])}
 
                 try:
                     result = aco(graph=grapher, start_node=0, **func_params) #run the algorithm
@@ -159,3 +160,64 @@ class Utils:
                                  end_memory_usage - start_memory_usage, len(grapher.nodes), len(grapher.edges), func_params, result[0],
                                  result[1]])
         benchfile.close()
+
+    def threeD_plot(self, filename:str="", folder:str="", valueA:str="", valueB:str="", shownValueA:str="", shownValueB:str=""):
+        """
+        method to plot the results of the aco parameters test
+        :param folder: folder where the csv file is located
+        :param filename: name of the csv file
+        :return: None
+        """
+
+        # plot a 3d graph of the results with x and y being the alpha, beta and z being the cost
+        import matplotlib.pyplot as plt
+        import pandas as pd
+        cost = [[], [], []]
+
+        if folder != "":
+            for filename in os.listdir(folder):
+                file_path = os.path.join(folder, filename)
+                df = pd.read_csv(file_path)
+
+                params = [eval(i) for i in df['parameters'].values]
+
+                value1 = [i[valueA] for i in params]
+                value2 = [i[valueB] for i in params]
+                # replace strings by 0
+
+                for i, value in enumerate(df['cost'].values):
+                    if value.isdigit():
+                        cost[2].append(float(value))
+                        cost[0].append(value1[i])
+                        cost[1].append(value2[i])
+
+        else:
+            df = pd.read_csv(filename)
+            params = [eval(i) for i in df['parameters'].values]
+
+            value1 = [i[valueA] for i in params]
+            value2 = [i[valueB] for i in params]
+            # replace strings by 0
+
+            for i, value in enumerate(df['cost'].values):
+                if value.isdigit():
+                    cost[2].append(float(value))
+                    cost[0].append(value1[i])
+                    cost[1].append(value2[i])
+        print(df)
+        print(params)
+
+
+        fig = plt.figure()
+        ax = fig.add_subplot(111, projection='3d')
+        ax.set_title('Cost of the ACO algorithm with different parameters')
+        ax.figure.set_size_inches(10, 10)
+        ax.scatter(cost[0], cost[1], cost[2], c=cost[2], marker='o')
+        ax.set_xlabel(shownValueA)
+        ax.set_ylabel(shownValueB)
+        ax.set_zlabel('Cost')
+
+        # plt.savefig(f"vendor/benchmarks/param_test/{filename}.png")
+
+        plt.show()
+
