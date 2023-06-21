@@ -1,3 +1,6 @@
+import pandas as pd
+from matplotlib import pyplot as plt
+
 from graph import Graph
 import random as rd
 import time
@@ -102,6 +105,7 @@ class Utils:
                 start_cpu_time = psutil.Process().cpu_times().user  # Measure CPU time before running the algorithm
                 start_memory_usage = psutil.Process().memory_info().rss / 1024 / 1024  # Convert to megabytes
 
+
                 result = func(graph=grapher, **func_params) # run the algorithm
 
                 end_cpu_time = psutil.Process().cpu_times().user  # Measure CPU time after running the algorithm
@@ -113,7 +117,7 @@ class Utils:
         benchfile.close()
 
 
-    def aco_parameters_test(self, parameters:dict, iterations:int=1000, instance_size:int=-1, instance: object = None):
+    def aco_parameters_test(self, parameters:dict, iterations:int=1000, instance_size:int=-1, instance: object = None, outputfile=''):
         """
         method to test the parameters of the aco algorithm and output the results to a csv file
         :param parameters: dictionary of parameters to test with min and max values ex: {"param1": [min, max], "param2": [min, max]}
@@ -135,8 +139,14 @@ class Utils:
         os.makedirs(os.path.dirname(filename), exist_ok=True) #create folder if it doesn't exist
 
 
+        if outputfile == '':
+            filename += f'aco_{datetime.datetime.now().strftime("%d-%m-%Y_%H-%M-%S")}.csv'
+        elif outputfile[-4:] != '.csv':
+            filename += f'{outputfile}.csv'
+        else:
+            filename += f'{outputfile}'
 
-        with open(f"{filename}aco_{datetime.datetime.now().strftime('%d-%m-%Y_%H-%M-%S')}.csv", mode='w', newline='') as benchfile: #open file
+        with open(filename, mode='w', newline='') as benchfile: #open file
             writer = csv.writer(benchfile, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL) #create csv writer
             writer.writerow(["iteration", "runtime (ms)", "CPU time (ms)", "memory (mb)", "nb_nodes", "nb_edges", "parameters", "cost", "path"]) #write header
 
@@ -146,7 +156,10 @@ class Utils:
                 start_memory_usage = psutil.Process().memory_info().rss / 1024 / 1024  # Convert to megabytes
 
                 #create random parameters in the range specified
-                func_params = {'num_ants': rd.randint(parameters['num_ants'][0],parameters['num_ants'][1]), 'alpha': rd.randint(parameters['alpha'][0],parameters['alpha'][1]), 'beta': rd.randint(parameters['beta'][0],parameters['beta'][1]), 'evaporation': rd.uniform(parameters['evaporation'][0],parameters['evaporation'][1]), 'already_visited_penalty': rd.uniform(parameters['already_visited_penalty'][0],parameters['already_visited_penalty'][1])}
+                func_params = {'alpha': rd.uniform(parameters['alpha'][0],parameters['alpha'][1]), 'beta': rd.uniform(parameters['beta'][0],parameters['beta'][1])}
+                # func_params = {'evaporation': rd.uniform(parameters['evaporation'][0],parameters['evaporation'][1]), 'already_visited_penalty': rd.uniform(parameters['already_visited_penalty'][0],parameters['already_visited_penalty'][1])}
+                # func_params = {'iterations': rd.randint(parameters['iterations'][0],parameters['iterations'][1])}
+                # func_params = {'num_ants': rd.randint(parameters['num_ants'][0],parameters['num_ants'][1])}
 
                 try:
                     result = aco(graph=grapher, start_node=0, **func_params) #run the algorithm
@@ -163,7 +176,7 @@ class Utils:
                                  result[1]])
         benchfile.close()
 
-    def threeD_plot(self, filename:str="", folder:str="", valueA:str="", valueB:str="", shownValueA:str="", shownValueB:str=""):
+    def threeD_plot(self, filename:str="", folder:str="", valueA:str="", valueB:str="", shownValueA:str="", shownValueB:str="",title:str=""):
         """
         method to plot the results of the aco parameters test
         :param folder: folder where the csv file is located
@@ -172,8 +185,6 @@ class Utils:
         """
 
         # plot a 3d graph of the results with x and y being the alpha, beta and z being the cost
-        import matplotlib.pyplot as plt
-        import pandas as pd
         cost = [[], [], []]
 
         if folder != "":
@@ -206,20 +217,76 @@ class Utils:
                     cost[2].append(float(value))
                     cost[0].append(value1[i])
                     cost[1].append(value2[i])
-        print(df)
-        print(params)
 
 
         fig = plt.figure()
         ax = fig.add_subplot(111, projection='3d')
-        ax.set_title('Cost of the ACO algorithm with different parameters')
+        ax.set_title(title)
         ax.figure.set_size_inches(10, 10)
         ax.scatter(cost[0], cost[1], cost[2], c=cost[2], marker='o')
         ax.set_xlabel(shownValueA)
         ax.set_ylabel(shownValueB)
-        ax.set_zlabel('Cost')
+        ax.set_zlabel('Cout')
 
-        # plt.savefig(f"vendor/benchmarks/param_test/{filename}.png")
+        ax.stem(cost[0], cost[1], cost[2], linefmt='grey', markerfmt=' ', basefmt=' ')
+
+        plt.show()
+
+    def twoD_plot(self, filename:str="", folder:str="", value:str="", shownValue:str="",title:str=""):
+        """
+        method to plot the results of the aco parameters test
+        :param filename:  name of the csv file
+        :param folder:  use a whole folder of csv files
+        :param value:  parameter to plot
+        :param shownValue:  name of the parameter to show on the graph
+        :return:  None
+        """
+
+        x = []
+        y = []
+
+        if folder != "":
+            for filename in os.listdir(folder):
+                file_path = os.path.join(folder, filename)
+                df = pd.read_csv(file_path)
+
+                params = [eval(i) for i in df['parameters'].values]
+
+                xs = [i[value] for i in params]
+                # replace strings by 0
+
+                for i, v in enumerate(df['cost'].values):
+                    if type(v) == str:
+                        if v.isdigit():
+                            y.append(float(v))
+                            x.append(xs[i])
+                    else:
+                        x.append(v)
+                        y.append(xs[i])
+
+        else:
+            file_path = os.path.join(folder, filename)
+            df = pd.read_csv(file_path)
+
+            params = [eval(i) for i in df['parameters'].values]
+
+            xs = [i[value] for i in params]
+            # replace strings by 0
+
+            for i, v in enumerate(df['cost'].values):
+                if type(v) == str:
+                    if v.isdigit():
+                        y.append(float(v))
+                        x.append(xs[i])
+                else:
+                    x.append(v)
+                    y.append(xs[i])
+
+        plt.figure(figsize=(10, 10))
+        plt.scatter(x, y)
+        plt.title(title)
+        plt.xlabel(shownValue)
+        plt.ylabel('Cout')
 
         plt.show()
 
